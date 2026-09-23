@@ -7909,63 +7909,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 207045473}
   m_CullTransparentMesh: 1
---- !u!1001 &207299126
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 100000, guid: 06305471085f25145a182dcf0030520d, type: 3}
-      propertyPath: m_Name
-      value: Chibang_01
-      objectReference: {fileID: 0}
-    - target: {fileID: 400000, guid: 06305471085f25145a182dcf0030520d, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0.821
-      objectReference: {fileID: 0}
-    - target: {fileID: 400000, guid: 06305471085f25145a182dcf0030520d, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -1.005
-      objectReference: {fileID: 0}
-    - target: {fileID: 400000, guid: 06305471085f25145a182dcf0030520d, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0.031
-      objectReference: {fileID: 0}
-    - target: {fileID: 400000, guid: 06305471085f25145a182dcf0030520d, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 0.69202006
-      objectReference: {fileID: 0}
-    - target: {fileID: 400000, guid: 06305471085f25145a182dcf0030520d, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 400000, guid: 06305471085f25145a182dcf0030520d, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0.72187835
-      objectReference: {fileID: 0}
-    - target: {fileID: 400000, guid: 06305471085f25145a182dcf0030520d, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 400000, guid: 06305471085f25145a182dcf0030520d, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 400000, guid: 06305471085f25145a182dcf0030520d, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 92.42
-      objectReference: {fileID: 0}
-    - target: {fileID: 400000, guid: 06305471085f25145a182dcf0030520d, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 06305471085f25145a182dcf0030520d, type: 3}
 --- !u!1001 &209328744
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -68663,4 +68606,3 @@ SceneRoots:
   - {fileID: 1059389728}
   - {fileID: 1431189821}
   - {fileID: 711115169}
-  - {fileID: 207299126}
