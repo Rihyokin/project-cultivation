@@ -200,26 +200,54 @@ public class BasicSword01 : MonoBehaviour
 
         // 锁定统一由 NpcTargeting 管理（左键选中 / 右键锁定）
         if (目标管理器 == null) 目标管理器 = GetComponent<NpcTargeting>();
+        // ★ 这里**故意不订阅** LockChanged —— 见 OnEnable / OnDisable 的注释
+    }
+
+    /// <summary>
+    /// 订阅「锁定变化」。
+    ///
+    /// 【为什么不在 Awake 里订阅】<see cref="NpcTargeting.LockChanged"/> 是个 **C# 事件**，
+    /// 而 **`enabled = false` 拦不住 C# 事件回调** —— Unity 只对消息（Update/OnTrigger…）
+    /// 看 enabled，委托链是你自己挂的，它照样调。
+    ///
+    /// 换功法时 <see cref="PlayerAbilityLoader"/> 是 `enabled = false` 而不是销毁，
+    /// 所以停用期间回调还活着：
+    ///     处理锁定变化 → 进入飞行() → 确保飞剑存在()
+    /// 于是「转修去别的功法后**第一次普攻**」会凭空冒出一把**冻住不动的废飞剑**
+    /// （它确实是这个已停用的组件生成的 —— Update 不跑，没人驱动它）。
+    /// 普攻总要先锁目标，所以正好卡在"第一次" ✗ 用户 2026-09-23 报的就是这个。
+    ///
+    /// 订阅跟着启用状态走，问题就不存在了 ✓
+    /// </summary>
+    void OnEnable()
+    {
+        if (目标管理器 == null) 目标管理器 = GetComponent<NpcTargeting>();
         if (目标管理器 != null) 目标管理器.LockChanged += 处理锁定变化;
     }
 
     void OnDestroy()
     {
-        if (目标管理器 != null) 目标管理器.LockChanged -= 处理锁定变化;
         收起飞剑();
     }
 
     /// <summary>
-    /// **被停用也要收掉飞剑。**
+    /// **被停用也要收掉飞剑 + 退订锁定事件。**
     ///
-    /// 【为什么需要】换功法时 <see cref="PlayerAbilityLoader"/> 是把组件 `enabled = false`
+    /// 【为什么需要收剑】换功法时 <see cref="PlayerAbilityLoader"/> 是把组件 `enabled = false`
     /// （不是销毁 —— 销毁会丢掉 Inspector 里那套模型/参数配置）。
     /// 如果只在 OnDestroy 里收剑，停用之后那把剑会**冻在原地继续挂着** ✗
+    ///
+    /// 【为什么还要退订】见 <see cref="OnEnable"/>：不退订的话，停用期间
+    /// 玩家一锁目标就会重新生成一把废飞剑。
     ///
     /// 剑体是**懒创建**的（<c>更新悬浮</c> 里 `if (剑体 == null) 确保飞剑存在()`），
     /// 所以停用收掉、以后再启用时会自动重新生成 ✓
     /// </summary>
-    void OnDisable() => 收起飞剑();
+    void OnDisable()
+    {
+        if (目标管理器 != null) 目标管理器.LockChanged -= 处理锁定变化;
+        收起飞剑();
+    }
 
     void 收起飞剑()
     {
@@ -232,6 +260,9 @@ public class BasicSword01 : MonoBehaviour
     /// <summary>锁定发生变化：玩家手动右键 → 立刻开打；锁定清空 → 停止交战</summary>
     void 处理锁定变化(NpcInstance npc, bool byPlayerClick)
     {
+        // 兜底：停用期间不对锁定做任何反应（正常已由 OnDisable 退订挡住）
+        if (!enabled) return;
+
         if (npc == null) { 交战中 = false; 进入返航(); return; }
 
         if (byPlayerClick)
