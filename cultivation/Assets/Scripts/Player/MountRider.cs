@@ -39,7 +39,7 @@ using UnityEngine;
 ///
 /// `applyRootMotion = False`，所以坐骑不会被动画带着跑，位置完全由本组件决定：
 /// 出生动画就在骑乘位播放，播完它自然已经在待机位置上 ✓
-/// 偏移/缩放是**从用户摆好的场景里量出来的**，见 <see cref="坐骑相对偏移"/>。
+/// 偏移/缩放是**从用户摆好的场景里量出来的**，见 <see cref="坐骑摆位表"/>。
 /// </summary>
 [DisallowMultipleComponent]
 public class MountRider : MonoBehaviour
@@ -92,23 +92,6 @@ public class MountRider : MonoBehaviour
     [Tooltip("下坐骑时玩家下落的高度过渡曲线（1→0）")]
     public AnimationCurve 落地曲线 = AnimationCurve.EaseInOut(0f, 1f, 1f, 0f);
 
-    [Header("坐骑摆位（从场景里量出来的）")]
-    [Tooltip("坐骑根相对角色根的本地偏移。\n" +
-             "来源：用户 2026-09-23 在 Sect 场景摆好的位置 —— 坐骑网格中心比玩家网格中心低 2.549m、\n" +
-             "水平几乎重合。\n" +
-             "y 原本是 -4.85，用户 2026-09-23 反馈「相对位置的高度距离差得有点远」后上抬 0.9\n" +
-             "（= 半个身位，身位按 1.8 算：骑乘高度 5.64 ≈ 3.13 × 1.8）。\n" +
-             "上抬前的实测：玩家脚底 5.654 竟然在碧水兽头顶(5.78)之上，离它的背脊(3.44)有 3.1\n" +
-             "—— 因为上面那串 -4.85 是按「网格中心」对的，而网格中心被撑大的包围盒带偏了。\n" +
-             "碧水兽本来就悬浮（脚趾离地 1.74），再抬 0.9 不会让它显得浮空")]
-    public Vector3 坐骑相对偏移 = new Vector3(0.29f, -3.95f, 0.24f);
-
-    [Tooltip("坐骑缩放。场景里摆的是 3.8762")]
-    public float 坐骑缩放 = 3.8762f;
-
-    [Tooltip("坐骑相对角色的额外旋转（欧拉角）")]
-    public Vector3 坐骑朝向 = Vector3.zero;
-
     [Header("坐骑朝向（锁定 + 移动时）")]
     [Tooltip("锁定管理器。留空则自动在本体找 NpcTargeting。\n" +
              "用来判断「有没有锁定」—— 有锁定且行进中时，坐骑朝移动方向、玩家继续正面锁敌")]
@@ -122,22 +105,26 @@ public class MountRider : MonoBehaviour
     [Tooltip("跑动动作的备用名。主名播不出来时依次试这些（碧水兽的控制器把跑动状态叫 FightRun，见代码注释）")]
     public string[] 跑动动作备用 = { "FightRun" };
 
-    /// <summary>单只坐骑的摆位覆盖。留空就用上面那套通用值。</summary>
+    /// <summary>单只坐骑的摆位。**每只坐骑一条**，不再有全局值可退。</summary>
     [System.Serializable]
     public class 坐骑摆位
     {
-        [Tooltip("坐骑id，例如 mount_chibang_01")]
+        [Tooltip("坐骑id，和 坐骑表.csv 第一列一致，例如 mount_chibang_01")]
         public string 坐骑id = "";
-        [Tooltip("相对角色根的本地偏移")]
-        public Vector3 偏移 = new Vector3(0f, -4.85f, 0f);
+        [Tooltip("坐骑根相对**角色根**的本地偏移（用角色自己的朝向算，不是坐骑朝向）")]
+        public Vector3 偏移 = new Vector3(0.29f, -3.95f, 0.24f);
         [Tooltip("相对角色朝向的额外旋转（欧拉角）")]
         public Vector3 朝向 = Vector3.zero;
-        [Tooltip("缩放。0 或负数 = 用通用的 坐骑缩放")]
-        public float 缩放 = 0f;
+        [Tooltip("这只坐骑的缩放（各只模型大小不同，必须一只一只给）")]
+        public float 缩放 = 3.8762f;
     }
 
-    [Tooltip("针对某只坐骑的摆位覆盖。**从场景里摆好的实例量出来**，别手填")]
-    public 坐骑摆位[] 个别坐骑摆位 = new 坐骑摆位[0];
+    [Tooltip("★ 每只坐骑的摆位，**一只一条，缺了会报 warning**。\n" +
+             "用户 2026-09-23 定：不要全局偏移 —— 坐骑模型大小/骨架差别很大\n" +
+             "（灵翅是长在背上的翅膀、碧水兽是悬浮的水兽、其余是狼/鹿/马/龙），\n" +
+             "一个全局值只能对一只合适，调一只就会连带动到其他所有只。\n" +
+             "填法：从场景里摆好的实例量出来，别手填（量法见 开发注意事项 §34.9/§34.14）")]
+    public 坐骑摆位[] 坐骑摆位表 = new 坐骑摆位[0];
 
     [Header("个别坐骑的行为覆盖")]
     [Tooltip("这些坐骑**朝向时刻跟玩家、永远待在背后**，不参与「行进时朝移动方向」那套。\n" +
@@ -296,7 +283,7 @@ public class MountRider : MonoBehaviour
         坐骑定义 = m;
         坐骑实例 = Instantiate(预制);
         坐骑实例.name = "坐骑_" + m.坐骑名称;
-        坐骑实例.transform.localScale = Vector3.one * 坐骑缩放;
+        坐骑实例.transform.localScale = Vector3.one * 实用缩放();
 
         // ★★ 必须关掉坐骑身上的碰撞体 ★★
         // 坐骑 prefab 根上带一个 CapsuleCollider，而骑手是 CharacterController ——
@@ -456,11 +443,11 @@ public class MountRider : MonoBehaviour
     /// <summary>上坐骑总时长：有 Birth 就用它的时长，没有就用保底时长</summary>
     float 上坐骑总时长 => Mathf.Max(玩家升空时长, 无出生动画 ? 出生保底时长 : 坐骑出生时长);
 
-    /// <summary>这只坐骑实际用的缩放（有覆盖就用覆盖）</summary>
+    /// <summary>这只坐骑实际用的缩放（来自它自己那条摆位）</summary>
     float 实用缩放()
     {
-        var 覆盖 = 取摆位覆盖();
-        return (覆盖 != null && 覆盖.缩放 > 0.0001f) ? 覆盖.缩放 : 坐骑缩放;
+        float s = 取摆位().缩放;
+        return s > 0.0001f ? s : 1f;      // 防呆：0/负数会让坐骑直接看不见
     }
 
     // （上坐骑总时长 见上面 —— 会按这只坐骑有没有 Birth 动画自动切换）
@@ -552,7 +539,7 @@ public class MountRider : MonoBehaviour
                 NpcDissolveEffect.播放(中心, 消散半径, 消散颜色);
             }
             // 后 60% 缩到 0，做出"消散"的收尾
-            // ★ 必须用 实用缩放()（吃个别坐骑摆位覆盖），不能用通用的 坐骑缩放 ——
+            // ★ 必须用 实用缩放()（吃这只坐骑自己那条摆位），不能写死某个全局缩放 ——
             //   灵翅的覆盖缩放是 1，通用的是 3.8762；写成通用的会让翅膀一下坐骑就胀大 3.9 倍，
             //   而它的网格中心又高于根，于是"飞到上面去" ✗（用户 2026-09-23 报的）
             float 缩放 = 实用缩放() * (1f - Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((进度 - 0.4f) / 0.6f)));
@@ -606,10 +593,10 @@ public class MountRider : MonoBehaviour
         if (坐骑实例 == null) return;
         var t = 坐骑实例.transform;
 
-        // ---- 这只坐骑实际用哪套摆位（有覆盖就用覆盖）----
-        var 覆盖 = 取摆位覆盖();
-        Vector3 偏移 = 覆盖 != null ? 覆盖.偏移 : 坐骑相对偏移;
-        Vector3 朝向 = 覆盖 != null ? 覆盖.朝向 : 坐骑朝向;
+        // ---- 这只坐骑**自己那条**摆位（★ 每只各一条，没有全局值可退）----
+        var 位 = 取摆位();
+        Vector3 偏移 = 位.偏移;
+        Vector3 朝向 = 位.朝向;
         float 缩放 = 实用缩放();
 
         // ---- 位置：始终挂在玩家根上，用玩家朝向算偏移 ----
@@ -663,13 +650,34 @@ public class MountRider : MonoBehaviour
 
     GameObject 上次摆位实例;
 
-    /// <summary>这只坐骑有没有单独的摆位覆盖</summary>
-    坐骑摆位 取摆位覆盖()
+    /// <summary>兜底摆位。**只有摆位表里漏配时才会用到** —— 值时一定是错的，好让人立刻发现。</summary>
+    static readonly 坐骑摆位 兜底摆位 = new 坐骑摆位
     {
-        if (坐骑定义 == null || 个别坐骑摆位 == null) return null;
-        foreach (var b in 个别坐骑摆位)
-            if (b != null && !string.IsNullOrEmpty(b.坐骑id) && b.坐骑id == 坐骑定义.坐骑id) return b;
-        return null;
+        坐骑id = "(兜底)",
+        偏移 = Vector3.zero,
+        朝向 = Vector3.zero,
+        缩放 = 1f,
+    };
+
+    string 已报缺失的坐骑id;
+
+    /// <summary>取这只坐骑自己那条摆位。★ 每只坐骑都必须有一条，没有全局值可退。</summary>
+    坐骑摆位 取摆位()
+    {
+        string id = 坐骑定义 != null ? 坐骑定义.坐骑id : null;
+        if (!string.IsNullOrEmpty(id) && 坐骑摆位表 != null)
+            foreach (var b in 坐骑摆位表)
+                if (b != null && b.坐骑id == id) return b;
+
+        // 摆坐骑() 每帧都会调到这里，所以只报一次，别刷屏
+        if (已报缺失的坐骑id != id)
+        {
+            已报缺失的坐骑id = id;
+            Debug.LogWarning("[坐骑] 坐骑摆位表 里没有「"
+                + (坐骑定义 != null ? 坐骑定义.坐骑名称 + "（" + id + "）" : "未知坐骑")
+                + "」这一条，先用兜底摆位（偏移 0 / 缩放 1）—— 摆出来一定是错的，去 Inspector 补一条", this);
+        }
+        return 兜底摆位;
     }
 
     /// <summary>是不是「长在身上、朝向必须时刻跟玩家」的坐骑（翅膀）</summary>
