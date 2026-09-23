@@ -95,9 +95,13 @@ public class MountRider : MonoBehaviour
     [Header("坐骑摆位（从场景里量出来的）")]
     [Tooltip("坐骑根相对角色根的本地偏移。\n" +
              "来源：用户 2026-09-23 在 Sect 场景摆好的位置 —— 坐骑网格中心比玩家网格中心低 2.549m、\n" +
-             "水平几乎重合。y 用 -4.85 是实测微调值：场景里量的是 -5.64，但运行时玩家网格中心\n" +
-             "比场景里高 0.79m（因为摆位时挪动过 Player_Visual），补偿后才是 2.549 的目标差")]
-    public Vector3 坐骑相对偏移 = new Vector3(0.29f, -4.85f, 0.24f);
+             "水平几乎重合。\n" +
+             "y 原本是 -4.85，用户 2026-09-23 反馈「相对位置的高度距离差得有点远」后上抬 0.9\n" +
+             "（= 半个身位，身位按 1.8 算：骑乘高度 5.64 ≈ 3.13 × 1.8）。\n" +
+             "上抬前的实测：玩家脚底 5.654 竟然在碧水兽头顶(5.78)之上，离它的背脊(3.44)有 3.1\n" +
+             "—— 因为上面那串 -4.85 是按「网格中心」对的，而网格中心被撑大的包围盒带偏了。\n" +
+             "碧水兽本来就悬浮（脚趾离地 1.74），再抬 0.9 不会让它显得浮空")]
+    public Vector3 坐骑相对偏移 = new Vector3(0.29f, -3.95f, 0.24f);
 
     [Tooltip("坐骑缩放。场景里摆的是 3.8762")]
     public float 坐骑缩放 = 3.8762f;
@@ -367,6 +371,14 @@ public class MountRider : MonoBehaviour
     /// <summary>已经播上的动作名（用来判断"这一帧还需不需要重播"）</summary>
     string 已播动作名;
 
+    /// <summary>先问再播。直接 PlayAction 缺动作时会刷 warning，这里静默跳过</summary>
+    static bool 有动作(NpcAnimator 动画器, string 名)
+    {
+        if (动画器 == null || string.IsNullOrEmpty(名)) return false;
+        var 表 = 动画器.AvailableActions;
+        return 表 != null && System.Array.IndexOf(表, 名) >= 0;
+    }
+
     /// <summary>播动作，主名不行就依次试备用名（跑动动作的命名在不同坐骑里不统一）</summary>
     bool 播坐骑动作带备用(string 主名, bool 循环)
     {
@@ -502,7 +514,9 @@ public class MountRider : MonoBehaviour
         落地触发时刻 = Mathf.Max(0f, 下坐骑总时长 - 玩家落地时长);
         落地已触发 = false;
 
-        if (坐骑动画 != null) 坐骑动画.PlayAction("LeveUp", false);
+        // ★ 先问「有没有这个动作」再播：直接 PlayAction 会在缺动作时每条日志一条 warning
+        //   （灵翅只有 Idle/Run，下坐骑必然刷一条「没有动作 LeveUp」）
+        if (坐骑动画 != null && 有动作(坐骑动画, "LeveUp")) 坐骑动画.PlayAction("LeveUp", false);
         if (动画 != null) 动画.设置外部御风(true, false);
 
         切到(骑乘状态.下坐骑中);
