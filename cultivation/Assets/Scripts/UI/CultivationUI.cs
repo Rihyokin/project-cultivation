@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -294,14 +294,32 @@ public class CultivationUI : MonoBehaviour
         刷新();
     }
 
+    /// <summary>
+    /// 转修页的反馈。转修页没有独立的提示条（突破页有 <c>突破提示</c>），
+    /// 所以消息就写在「转修后境界预估」那一行上。
+    ///
+    /// 【为什么要加】以前这里**什么都不写**：
+    ///   · 没先点功法行 → 只把小字改成"先选一门功法"，很容易被当成"点了没反应"
+    ///   · 转修成功   → 界面上一点提示都没有，用户会以为没生效
+    /// 现在明确写出结果。
+    /// </summary>
+    void 转修反馈(string 消息)
+    {
+        if (转修预估 != null) 转修预估.text = 消息;
+    }
+
     void 点确认转修()
     {
         if (修为 == null) return;
         var 目标 = 选中功法 >= 0 && 选中功法 < 功法行.Count ? 功法行[选中功法] : null;
-        if (目标 == null) { if (转修预估 != null) 转修预估.text = "先选一门功法"; return; }
-        if (目标 == 修为.当前功法) { if (转修预估 != null) 转修预估.text = "已经在修这门了"; return; }
-        修为.转修功法(目标);
-        刷新();
+        if (目标 == null) { 转修反馈("请先在上面点一门功法"); return; }
+        if (目标 == 修为.当前功法) { 转修反馈("已经在修「" + (目标 != null ? 目标.功法名称 : "?") + "」了"); return; }
+
+        bool 成功 = 修为.转修功法(目标);
+        刷新();                                   // 刷新会把预估重算一遍
+        转修反馈(成功
+            ? "已转修到「" + 目标.功法名称 + "」　当前境界：" + 修为.境界名
+            : "转修失败（没找到功法定义？）");       // ★ 放在刷新之后，否则会被盖掉
     }
 
     // ============================================================ 搭界面
@@ -448,14 +466,19 @@ public class CultivationUI : MonoBehaviour
 
         var 标题 = UIBuildUtils.CreateText("标题", 列表块.transform, 字体, "当前学会的功法", 22,
             TextAnchor.UpperLeft, 字色);
-        靠左(标题.rectTransform, new Vector2(w, h - 86f), 18f, h - 86f - 46f, w - 36f, 32f);
+        // 【坑·已修】标题和功法行都是**列表块的子物体**，锚的是列表块左下角，
+        // 不是页根 —— 列表块高 = h−86 = 550。
+        //   标题原来在 h−86−46 = 504（框顶 550 往下 46，对的）
+        //   但第一行原来在 h−86−56 = 494，和标题的 504~536 **重叠** → 标题被盖住
+        // 现在：标题仍在 504，行从 450 起（标题底 504 − 缝 8 − 行高 46），不再重叠。
+        靠左(标题.rectTransform, new Vector2(w, h - 86f), 18f, h - 132f, w - 36f, 32f);
 
         // 功法行（先按 全部功法 建好；运行时刷新文字与选中态）
         int 行数 = Mathf.Max(0, 取可转修功法().Count);
         for (int i = 0; i < 行数; i++)
         {
             int 号 = i;
-            float y = h - 86f - 56f - i * 54f;
+            float y = h - 186f - i * 54f;
             if (y < 10f) break;
             var 行图 = UIBuildUtils.CreateImage("功法行" + i, 列表块.transform, 面板色);
             行图.raycastTarget = true;

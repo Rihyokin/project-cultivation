@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 
 /// <summary>
@@ -367,7 +367,18 @@ public class PlayerCultivation : MonoBehaviour
 
     // ============================================================ 查表工具
 
-    /// <summary>按「等效基准灵气 S」查境界</summary>
+    /// <summary>
+    /// 按「等效基准灵气 S」查境界：**累计灵气 ≤ S 的里面，等级最高的那一个**。
+    ///
+    /// 【为什么不能依赖数组顺序】以前这里写的是「遇到更大的等级就 `else break`」，
+    /// 隐含要求 <see cref="境界表"/> 按等级升序。但表是脚本/工具填的，
+    /// 一旦顺序乱了（实测：按资产名字母序 → 元婴第10层排在第 0 位），
+    /// 就会**提前退出**、把「炼气第1层」的玩家判成「元婴第10层」，
+    /// 而且不报任何错 —— 修炼小屋的「转修后境界预估」就是这么错的。
+    ///
+    /// 现在改成**全表扫一遍、只看「累计灵气 ≤ S 且等级最高」**，与顺序无关。
+    /// 表只有 90 条，这点开销可以忽略。
+    /// </summary>
     public RealmDefinition 查境界(long S)
     {
         if (境界表 == null || 境界表.Length == 0) return null;
@@ -376,11 +387,10 @@ public class PlayerCultivation : MonoBehaviour
         {
             var d = 境界表[i];
             if (d == null) continue;
-            if (最佳 == null) { 最佳 = d; continue; }
-            if (d.等级 <= 最佳.等级) continue;
-            if (d.累计灵气 <= S) 最佳 = d; else break;
+            if (d.累计灵气 > S) continue;                       // 还没到这一级
+            if (最佳 == null || d.等级 > 最佳.等级) 最佳 = d;     // 取等级最高的
         }
-        return 最佳;
+        return 最佳 ?? 境界表[0];                                // S 连 1 级都不够 → 兜底第 0 个
     }
 
     /// <summary>按功法 id 找功法（读档用）</summary>

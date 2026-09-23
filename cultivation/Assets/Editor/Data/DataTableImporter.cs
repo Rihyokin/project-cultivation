@@ -470,11 +470,24 @@ public static class DataTableImporter
         if (修炼 != null)
         {
             修炼.面板数据 = data;
-            修炼.境界表 = LoadAll<RealmDefinition>().ToArray();
+
+            // ★★★【坑】境界表**必须按 等级 升序**，不能直接用 LoadAll 的结果！
+            // LoadAll 内部是按**资产名**排序的（元婴第10层 / 元婴第1层 / 化神第10层 …），
+            // 而 PlayerCultivation.查境界() 里有一个 `else break` —— 它假定数组是升序的，
+            // 顺序一乱就会提前退出、返回一个离谱的境界。
+            // 实测后果：玩家明明是「炼气第1层」，查境界(0) 却返回「元婴第10层」，
+            // 于是修炼小屋的「转修后境界预估」显示成 元婴第10层，看起来像转修功能坏了。
+            var 境界们 = LoadAll<RealmDefinition>();
+            境界们.Sort((a, b) => (a != null ? a.等级 : 0).CompareTo(b != null ? b.等级 : 0));
+            修炼.境界表 = 境界们.ToArray();
+
+            // 功法表没有顺序要求，直接给
             修炼.功法表 = LoadAll<GongFaDefinition>().ToArray();
+
             EditorUtility.SetDirty(修炼);
             Debug.Log("[DataTableImporter] 已接 PlayerCultivation：境界表 "
-                      + 修炼.境界表.Length + " 条、功法表 " + 修炼.功法表.Length + " 条、面板数据="
+                      + 修炼.境界表.Length + " 条（已按等级升序，1→" + (修炼.境界表.Length > 0 ? 修炼.境界表[修炼.境界表.Length - 1].等级.ToString() : "?")
+                      + "）、功法表 " + 修炼.功法表.Length + " 条、面板数据="
                       + (修炼.面板数据 != null ? 修炼.面板数据.name : "null"));
         }
 
