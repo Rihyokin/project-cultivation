@@ -324,7 +324,7 @@ public class MountRider : MonoBehaviour
         出生已开播 = false;
         保底特效已放 = false;
         已播动作名 = null;              // 换了坐骑要重新播一次
-        无出生动画 = !有出生动画();     // 没有 Birth 的坐骑 → 走「粒子 + 淡入」保底
+        无出生动画 = !有出生动画();     // 没有 Birth 的坐骑 → 走「粒子 + 从小变大」保底
 
         锁住御风();
         角色目标高度 = 起始高度 + 骑乘高度;
@@ -342,7 +342,7 @@ public class MountRider : MonoBehaviour
 
     float 起始高度;
     bool 出生已开播;
-    bool 无出生动画;          // 这只坐骑没有 Birth 动作（除碧水兽外其余 7 只都没有）→ 走保底
+    bool 无出生动画;          // 这只坐骑没有 Birth 动作（除碧水兽外其余 7 只都没有）→ 走保底（粒子 + 缩放）
     bool 保底特效已放;
 
     /// <summary>播坐骑动作。NpcAnimator 没就绪时返回 false，调用方可以重试</summary>
@@ -362,19 +362,6 @@ public class MountRider : MonoBehaviour
         if (坐骑动画 == null) return false;
         var 表 = 坐骑动画.AvailableActions;
         return 表 != null && System.Array.IndexOf(表, "Birth") >= 0;
-    }
-
-    /// <summary>
-    /// 坐骑网格中心在**根的本地方向**（不含根的缩放）。给"按网格中心缩放"用。
-    /// 用 localBounds 而不是 bounds：前者不随根的缩放变，正好是我们要的"未缩放时的中心"。
-    /// </summary>
-    Vector3? 取网格本地中心()
-    {
-        if (坐骑实例 == null) return null;
-        var smr = 坐骑实例.GetComponentInChildren<SkinnedMeshRenderer>();
-        if (smr == null) return null;
-        var 世界 = smr.transform.TransformPoint(smr.localBounds.center);
-        return 坐骑实例.transform.InverseTransformPoint(世界);
     }
 
     /// <summary>已经播上的动作名（用来判断"这一帧还需不需要重播"）</summary>
@@ -410,8 +397,15 @@ public class MountRider : MonoBehaviour
             else 出生已开播 = 播坐骑动作("Birth", false);
         }
 
-        // 出生期间坐骑**固定在最终骑乘高度**（跟着玩家升会和自己动画的上升叠成两倍）
-        摆坐骑(起始高度 + 骑乘高度);
+        // 出生期间坐骑摆在哪：
+        //   · **有 Birth 动画**（碧水兽）→ 钉在**最终骑乘高度**
+        //     因为 Birth 自己就会从下方升上来（首帧比末帧低 2.27 本地单位 ≈ 8.8m），
+        //     跟着玩家升会和它自己的上升叠成两倍 ✗
+        //   · **没有 Birth**（其余 7 只，走「从小变大」保底）→ **跟着玩家当前高度**
+        //     因为保底没有任何"自己上升"的动作，钉在最终高度的话，
+        //     翅膀会在玩家还在地面时就浮在**上方好几米**的地方长大 ✗
+        //     （用户 2026-09-23 报的"生成好像也是在更上方的部分生成的"就是这个）
+        摆坐骑(无出生动画 ? transform.position.y : 起始高度 + 骑乘高度);
 
         // 没有 Birth 时用「从小变大」代替淡入（用户 2026-09-23 选的效果）：
         // 起始很小 → 平滑长到正常体积。
@@ -544,7 +538,10 @@ public class MountRider : MonoBehaviour
                 NpcDissolveEffect.播放(中心, 消散半径, 消散颜色);
             }
             // 后 60% 缩到 0，做出"消散"的收尾
-            float 缩放 = 坐骑缩放 * (1f - Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((进度 - 0.4f) / 0.6f)));
+            // ★ 必须用 实用缩放()（吃个别坐骑摆位覆盖），不能用通用的 坐骑缩放 ——
+            //   灵翅的覆盖缩放是 1，通用的是 3.8762；写成通用的会让翅膀一下坐骑就胀大 3.9 倍，
+            //   而它的网格中心又高于根，于是"飞到上面去" ✗（用户 2026-09-23 报的）
+            float 缩放 = 实用缩放() * (1f - Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((进度 - 0.4f) / 0.6f)));
             坐骑实例.transform.localScale = Vector3.one * 缩放;
         }
 
@@ -599,7 +596,7 @@ public class MountRider : MonoBehaviour
         var 覆盖 = 取摆位覆盖();
         Vector3 偏移 = 覆盖 != null ? 覆盖.偏移 : 坐骑相对偏移;
         Vector3 朝向 = 覆盖 != null ? 覆盖.朝向 : 坐骑朝向;
-        float 缩放 = (覆盖 != null && 覆盖.缩放 > 0.0001f) ? 覆盖.缩放 : 坐骑缩放;
+        float 缩放 = 实用缩放();
 
         // ---- 位置：始终挂在玩家根上，用玩家朝向算偏移 ----
         // 【为什么位置用玩家朝向、不用坐骑朝向】玩家必须始终坐在坐骑背上。
