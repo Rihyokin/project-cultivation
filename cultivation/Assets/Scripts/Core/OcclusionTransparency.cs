@@ -41,6 +41,13 @@ public class OcclusionTransparency : MonoBehaviour
     readonly List<Renderer> _本帧 = new List<Renderer>();
     readonly List<Renderer> _待恢复 = new List<Renderer>();
 
+    void Awake()
+    {
+        // ★ 生效范围交给「场景特效开关表」决定（而不是"哪个场景挂了组件"）——
+        //   这样组件可以跟着通用装配铺到所有场景，不会再被同步冲掉、也不会到处生效。
+        if (!场景特效开关.自己该生效(true, this)) { enabled = false; return; }
+    }
+
     void LateUpdate()
     {
         var cam = GetComponent<Camera>();

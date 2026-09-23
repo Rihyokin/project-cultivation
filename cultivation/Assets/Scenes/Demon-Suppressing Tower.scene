@@ -48019,6 +48019,7 @@ GameObject:
   - component: {fileID: 1805764461}
   - component: {fileID: 1805764460}
   - component: {fileID: 1805764462}
+  - component: {fileID: 1805764463}
   m_Layer: 0
   m_HasEditorInfo: 1
   m_Name: Player
@@ -48832,6 +48833,36 @@ MonoBehaviour:
   "\u51FA\u751F\u4FDD\u5E95\u8D77\u59CB\u7F29\u653E": 0.05
   "\u51FA\u751F\u4FDD\u5E95\u7279\u6548\u534A\u5F84": 2
   "\u51FA\u751F\u4FDD\u5E95\u7279\u6548\u62AC\u9AD8": 1
+--- !u!114 &1805764463
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1805764442}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b86356513ed535649ad16ce263ef4522, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  "\u6444\u50CF\u673A": {fileID: 1786122617}
+  "\u89D2\u8272": {fileID: 1805764444}
+  "\u89D2\u8272\u9AD8\u5EA6": 1.8
+  "\u63CF\u8FB9\u989C\u8272": {r: 1, g: 0.82, b: 0.25, a: 1}
+  "\u63CF\u8FB9\u5BBD\u5EA6": 0.08
+  "\u526A\u5F71\u989C\u8272": {r: 1, g: 0.82, b: 0.25, a: 0.35}
+  "\u6DE1\u5165\u901F\u5EA6": 7
+  "\u91C7\u6837\u9AD8\u5EA6":
+  - 0.15
+  - 0.5
+  - 0.85
+  "\u68C0\u6D4B\u5C42":
+    serializedVersion: 2
+    m_Bits: 4294967295
+  "\u68C0\u6D4B\u95F4\u9694\u5E27": 1
+  "\u8C03\u8BD5_\u5F3A\u5236\u663E\u793A": 0
+  "\u6253\u5370\u65E5\u5FD7": 0
+  "\u542F\u7528": 1
 --- !u!1 &1806017207
 GameObject:
   m_ObjectHideFlags: 0

@@ -104,6 +104,7 @@ public class OcclusionOutline : MonoBehaviour
 
     void Awake()
     {
+        if (!场景特效开关.自己该生效(false, this)) { enabled = false; return; }
         解析引用();
         建立副本();
     }
