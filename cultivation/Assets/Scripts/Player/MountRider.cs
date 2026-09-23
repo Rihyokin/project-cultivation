@@ -593,9 +593,18 @@ public class MountRider : MonoBehaviour
                 目标Yaw = Quaternion.LookRotation(移动方向.normalized, Vector3.up).eulerAngles.y;
         }
 
-        当前坐骑Yaw = 坐骑转向速度 <= 0f
-            ? 目标Yaw
-            : Mathf.MoveTowardsAngle(当前坐骑Yaw, 目标Yaw, 坐骑转向速度 * Time.deltaTime);
+        // 「长在身上」的坐骑（翅膀）**不插值** —— 直接卡死在玩家朝向上。
+        // 用户 2026-09-23：「应该是紧密的卡死在角色的后方的，而不是现在这样平滑的插值变化」
+        if (朝向始终跟玩家)
+        {
+            当前坐骑Yaw = 玩家Yaw;
+        }
+        else
+        {
+            当前坐骑Yaw = 坐骑转向速度 <= 0f
+                ? 目标Yaw
+                : Mathf.MoveTowardsAngle(当前坐骑Yaw, 目标Yaw, 坐骑转向速度 * Time.deltaTime);
+        }
 
         t.rotation = Quaternion.Euler(0f, 当前坐骑Yaw, 0f) * Quaternion.Euler(朝向);
 
