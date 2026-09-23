@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -74,14 +74,73 @@ public class YufengVfx : MonoBehaviour
         御风 = GetComponent<YufengFlight>();
         if (御风 == null) { enabled = false; return; }
 
-        御风.状态变化 += OnStateChanged;
         BuildRings();
         BuildStream();
+    }
+
+    /// <summary>
+    /// 订阅「状态变化」。
+    ///
+    /// 【为什么放在 OnEnable，而不是 Awake】`YufengFlight.状态变化` 是个 **C# 事件**，
+    /// 而 **`enabled = false` 拦不住 C# 事件回调** —— Unity 只对消息（Update/OnTrigger…）
+    /// 看 enabled，委托链是你自己挂的，它照调不误。
+    ///
+    /// 本组件是被 <see cref="PlayerAbilityLoader"/> **启停**的（换功法 / 开关神通），
+    /// 订阅若留在 Awake、退订只留在 OnDestroy，停用期间回调就还活着 ✗
+    /// —— 和 <see cref="BasicSword01"/> 那把废飞剑是同一个坑（见开发注意事项 §29）。
+    /// </summary>
+    void OnEnable()
+    {
+        if (御风 == null) 御风 = GetComponent<YufengFlight>();
+        if (御风 != null) 御风.状态变化 += OnStateChanged;
     }
 
     void OnDestroy()
     {
         if (御风 != null) 御风.状态变化 -= OnStateChanged;
+        收起特效();          // 组件被销毁时也把挂件收干净
+    }
+
+    /// <summary>
+    /// **被停用要收掉所有特效。**
+    ///
+    /// 【为什么需要】风环 / 上升气流 / 爆发环的**可见性和动画全部由 <see cref="Update"/> 驱动**，
+    /// 而 Update 在 `enabled = false` 之后就不跑了 —— 没有任何人去收它们。
+    ///
+    /// 于是「**御风中换功法 / 关掉凭虚御风**」会**冻一个风环挂在脚下**（外加一排不动的上升气流）；
+    /// 正好在落地那一瞬换功法，还会再冻一个爆发环 ✗
+    ///
+    /// 停用收干净，重新启用时 Update 会自己恢复
+    /// （风环/气流是 <see cref="Awake"/> 里建好的，这里只是 SetActive(false)）✓
+    /// </summary>
+    void OnDisable()
+    {
+        if (御风 != null) 御风.状态变化 -= OnStateChanged;
+        收起特效();
+    }
+
+    void 收起特效()
+    {
+        // 风环：藏起来并把透明度清零，重新启用且仍在御风中时会重新淡入
+        if (风环 != null)
+        {
+            风环.gameObject.SetActive(false);
+            风环透明度 = 0f;
+        }
+
+        for (int i = 0; i < 气流.Count; i++)
+            if (气流[i].t != null) 气流[i].t.gameObject.SetActive(false);
+
+        // 爆发环是一次性的，直接销毁（正常路径也是在 Update 里到点销毁）
+        for (int i = 爆发环.Count - 1; i >= 0; i--)
+        {
+            if (爆发环[i].t != null)
+            {
+                if (Application.isPlaying) Destroy(爆发环[i].t.gameObject);
+                else DestroyImmediate(爆发环[i].t.gameObject);
+            }
+            爆发环.RemoveAt(i);
+        }
     }
 
     // ---------------------------------------------------------------- 构建
