@@ -134,6 +134,13 @@ public class MountRider : MonoBehaviour
         [Tooltip("「平滑跟玩家」时的转向速度（度/秒）。**越小越慢越飘**。\n" +
                  "参考：默认的 坐骑转向速度 是 240，上古神龙这种环身特效建议 30~60")]
         public float 跟随速度 = 45f;
+        [Tooltip("★ 骑乘时角色根抬离地面的高度（米）——**每只坐骑自己的**。\n" +
+                 "· 悬浮坐骑（碧水兽/翅膀/神龙）：5.64\n" +
+                 "· 在地上跑的（狼/鹿/熊猫）：设成「它的背高 + 一点点」，1~1.5 左右")]
+        public float 骑乘高度 = 5.64f;
+        [Tooltip("★ 贴地跑：角色高度按**每帧脚下实际的地面**算（向下打射线），上坡下坡不会陷进去/悬空。\n" +
+                 "在地上跑的坐骑打开；悬浮的（碧水兽/翅膀/神龙）关掉（关掉=用上坐骑那一刻的地面高度）")]
+        public bool 贴地 = false;
     }
 
     [Tooltip("★ 每只坐骑的摆位，**一只一条，缺了会报 warning**。\n" +
@@ -188,8 +195,8 @@ public class MountRider : MonoBehaviour
     bool 坐骑Yaw已初始化;
 
     [Header("高度与移动")]
-    [Tooltip("骑乘时角色根抬离地面的高度（米）。上坐骑就是升到这个高度")]
-    public float 骑乘高度 = 5.64f;
+    [Tooltip("贴地坐骑向下探地面能探多深（米）。探不到就用上坐骑那一刻的地面高度")]
+    public float 地面探测深度 = 30f;
 
     [Tooltip("骑乘时的水平移动速度（米/秒）")]
     public float 坐骑移动速度 = 9f;
@@ -517,7 +524,7 @@ public class MountRider : MonoBehaviour
         //     因为保底没有任何"自己上升"的动作，钉在最终高度的话，
         //     翅膀会在玩家还在地面时就浮在**上方好几米**的地方长大 ✗
         //     （用户 2026-09-23 报的"生成好像也是在更上方的部分生成的"就是这个）
-        摆坐骑(无出生动画 ? transform.position.y : 起始高度 + 骑乘高度);
+        摆坐骑(无出生动画 ? (贴地 ? 基准地面高度 + 骑乘高度 : transform.position.y) : 起始高度 + 骑乘高度);
 
         // 没有 Birth 时用「从小变大」代替淡入（用户 2026-09-23 选的效果）：
         // 起始很小 → 平滑长到正常体积。
@@ -537,7 +544,7 @@ public class MountRider : MonoBehaviour
 
         // 玩家：0 → 升空时长 之间升到骑乘高度；升空动画放完就转御风_Idle
         float k = 玩家升空时长 > 0.001f ? Mathf.Clamp01(过渡计时 / 玩家升空时长) : 1f;
-        角色目标高度 = 起始高度 + 骑乘高度 * 升空曲线.Evaluate(k);
+        角色目标高度 = 基准地面高度 + 骑乘高度 * 升空曲线.Evaluate(k);
 
         if (动画 != null && 过渡计时 >= 玩家升空时长)
             动画.设置外部御风(true, false);   // 已经切到 御风_Idle（Flying=1, FlyMoving=0）
@@ -564,6 +571,34 @@ public class MountRider : MonoBehaviour
         return s > 0.0001f ? s : 1f;      // 防呆：0/负数会让坐骑直接看不见
     }
 
+    /// <summary>这只坐骑的骑乘高度（每只坐骑自己一条：悬浮的 5.64、在地上跑的 1~1.5）</summary>
+    float 骑乘高度 => 取摆位().骑乘高度;
+
+    /// <summary>这只坐骑是不是「贴地跑」（高度按脚下实际地面算）</summary>
+    bool 贴地 => 取摆位().贴地;
+
+    /// <summary>
+    /// 高度计算的**基准地面**：
+    /// · 贴地坐骑 → 每帧向下打射线取**脚下的实际地面**（上坡下坡跟着走，不陷不悬）
+    /// · 其他坐骑 → 上坐骑那一刻的地面高度（悬浮坐骑不关心脚下）
+    /// </summary>
+    float 基准地面高度 => 贴地 ? 当前地面高度() : 起始高度;
+
+    CharacterController 角色胶囊;
+
+    float 当前地面高度()
+    {
+        if (角色胶囊 == null) 角色胶囊 = GetComponent<CharacterController>();
+        if (角色胶囊 == null) return 起始高度;
+        // 起点放在**脚底稍上方**：胶囊是凸体，射线起点落在它内部时不会被自己挡住
+        var 起点 = transform.position + Vector3.up * 0.15f;
+        RaycastHit 命中;
+        if (Physics.Raycast(起点, Vector3.down, out 命中, 地面探测深度, ~0, QueryTriggerInteraction.Ignore)
+            && 命中.collider != 角色胶囊)
+            return 命中.point.y;
+        return 起始高度;      // 探不到（悬空/找不到地面）就退回上坐骑时的地面
+    }
+
     // （上坐骑总时长 见上面 —— 会按这只坐骑有没有 Birth 动画自动切换）
 
     [Header("没有 Birth 动画时的保底")]
@@ -584,7 +619,8 @@ public class MountRider : MonoBehaviour
     void 更新骑乘中()
     {
         // 高度就锁在这，不走重力、不消耗灵气
-        角色目标高度 = 起始高度 + 骑乘高度;
+        // ★ 贴地坐骑这里每帧都在重新取脚下的地面 → 上坡下坡跟着走
+        角色目标高度 = 基准地面高度 + 骑乘高度;
 
         // 速度决定待机 / 行进
         float 速度 = 控制器 != null ? 控制器.CurrentSpeed : 0f;
@@ -648,13 +684,13 @@ public class MountRider : MonoBehaviour
 
         // 下落：从骑乘高度回到地面。用落地曲线（1→0）
         float k = 下坐骑总时长 > 0.001f ? Mathf.Clamp01(过渡计时 / 下坐骑总时长) : 1f;
-        角色目标高度 = 起始高度 + 骑乘高度 * 落地曲线.Evaluate(k);
+        角色目标高度 = 基准地面高度 + 骑乘高度 * 落地曲线.Evaluate(k);
 
         // 落地动画推迟触发，让它和目标同时收尾
         if (!落地已触发 && 过渡计时 >= 落地触发时刻)
         {
             落地已触发 = true;
-            角色目标高度 = 起始高度;
+            角色目标高度 = 基准地面高度;
             if (动画 != null) 动画.触发落地();
         }
 
