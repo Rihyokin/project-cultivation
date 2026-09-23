@@ -315,6 +315,7 @@ public class MountRider : MonoBehaviour
         // 改成每帧重试，成功为止，见 更新上坐骑()。
         出生已开播 = false;
         保底特效已放 = false;
+        已播动作名 = null;              // 换了坐骑要重新播一次
         无出生动画 = !有出生动画();     // 没有 Birth 的坐骑 → 走「粒子 + 淡入」保底
 
         锁住御风();
@@ -355,6 +356,31 @@ public class MountRider : MonoBehaviour
         return 表 != null && System.Array.IndexOf(表, "Birth") >= 0;
     }
 
+    /// <summary>
+    /// 坐骑网格中心在**根的本地方向**（不含根的缩放）。给"按网格中心缩放"用。
+    /// 用 localBounds 而不是 bounds：前者不随根的缩放变，正好是我们要的"未缩放时的中心"。
+    /// </summary>
+    Vector3? 取网格本地中心()
+    {
+        if (坐骑实例 == null) return null;
+        var smr = 坐骑实例.GetComponentInChildren<SkinnedMeshRenderer>();
+        if (smr == null) return null;
+        var 世界 = smr.transform.TransformPoint(smr.localBounds.center);
+        return 坐骑实例.transform.InverseTransformPoint(世界);
+    }
+
+    /// <summary>已经播上的动作名（用来判断"这一帧还需不需要重播"）</summary>
+    string 已播动作名;
+
+    /// <summary>播动作，主名不行就依次试备用名（跑动动作的命名在不同坐骑里不统一）</summary>
+    bool 播坐骑动作带备用(string 主名, bool 循环)
+    {
+        if (播坐骑动作(主名, 循环)) return true;
+        foreach (var 备 in 跑动动作备用)
+            if (!string.IsNullOrEmpty(备) && 备 != 主名 && 播坐骑动作(备, 循环)) return true;
+        return false;
+    }
+
     void 更新上坐骑()
     {
         过渡计时 += Time.deltaTime;
@@ -379,11 +405,21 @@ public class MountRider : MonoBehaviour
         // 出生期间坐骑**固定在最终骑乘高度**（跟着玩家升会和自己动画的上升叠成两倍）
         摆坐骑(起始高度 + 骑乘高度);
 
-        // 没有 Birth 时用缩放淡入代替（0 → 原缩放）
+        // 没有 Birth 时用缩放淡入代替（0 → 原缩放），**并且按网格中心缩放** ——
+        // 用户要求「出生淡入时也要卡死在角色后方」：直接缩根的话，网格中心会从
+        // 「根的位置」滑到「根+本地偏移」，看起来就是从背后滑进来 ✗
+        // 这里把根反向补偿，让**网格中心钉在原地不动**，只有体积在长出来。
         if (无出生动画 && 坐骑实例 != null)
         {
             float kk = 出生保底时长 > 0.001f ? Mathf.Clamp01(过渡计时 / 出生保底时长) : 1f;
-            坐骑实例.transform.localScale = Vector3.one * (实用缩放() * Mathf.SmoothStep(0f, 1f, kk));
+            float s = Mathf.SmoothStep(0f, 1f, kk);
+            float 目标缩放 = 实用缩放();
+            坐骑实例.transform.localScale = Vector3.one * (目标缩放 * s);
+
+            var 中心 = 取网格本地中心();
+            if (中心.HasValue)
+                坐骑实例.transform.position += 坐骑实例.transform.rotation
+                    * (中心.Value * 目标缩放 * (1f - s));
         }
 
         // 玩家：0 → 升空时长 之间升到骑乘高度；升空动画放完就转御风_Idle
@@ -439,25 +475,17 @@ public class MountRider : MonoBehaviour
         if (该行进 != 行进中)
         {
             行进中 = 该行进;
-            if (坐骑动画 != null)
-            {
-                if (该行进)
-                {
-                    // 优先用 跑动动作（"Run"），没有就依次试备用名
-                    // 【为什么要备用】八个坐骑里只有碧水兽的控制器把跑动状态叫 FightRun，
-                    // 其余都是 Run。本想直接把碧水兽那个状态改名统一，但实测
-                    // `AnimatorState.name = "..."` + SetDirty + SaveAssets **只改内存、不落盘**
-                    //（AssetDatabase.LoadAssetAtPath 返回的是缓存对象，会骗过"重新读盘"的检查），
-                    // 运行时读到的仍是 FightRun。所以这里做兼容，两种命名都能跑 ✓
-                    if (!播坐骑动作(跑动动作, true))
-                        foreach (var 备 in 跑动动作备用)
-                            if (!string.IsNullOrEmpty(备) && 播坐骑动作(备, true)) break;
-                }
-                else 播坐骑动作("Idle", true);
-            }
             if (动画 != null) 动画.设置外部御风(true, 该行进);
             切到(该行进 ? 骑乘状态.坐骑行进中 : 骑乘状态.坐骑待机);
         }
+
+        // ★ 每帧确保动作在播，而不是只在状态切换那一帧试一次。
+        // 只在切换帧试一次的话，那一次失败就**永远不播**了 ——
+        // 用户 2026-09-23 报的「翅膀没挂上 idle 和 run 的动画」就是这个原因
+        //（NpcAnimator 要等 Start 才「已就绪」，外面也可能有时序问题）。
+        string 想要 = 该行进 ? 跑动动作 : "Idle";
+        if (已播动作名 != 想要 && 播坐骑动作带备用(想要, true)) 已播动作名 = 想要;
+
         摆坐骑();
     }
 
