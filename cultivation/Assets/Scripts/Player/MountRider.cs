@@ -252,7 +252,10 @@ public class MountRider : MonoBehaviour
             Debug.LogWarning("[坐骑]「" + m.坐骑名称 + "」上没有 NpcAnimator，播不了动作", this);
 
         // ★ 出生动画就在骑乘位播放：applyRootMotion=False，所以播完它自然已经在待机位置上
-        摆坐骑();
+        起始高度 = transform.position.y;
+        角色目标高度 = 起始高度 + 骑乘高度;
+        // ★ 用「最终骑乘高度」摆位 —— 整段出生动画里坐骑不动，升上来的是它自己的动画
+        摆坐骑(角色目标高度);
         // 【不能在这里直接播】NpcAnimator 要等 Start 才「已就绪」，而 Instantiate 当帧 Start 还没跑，
         // PlayAction 会返回 false —— 表现就是**碧水兽卡在默认姿势不动**
         //（用户 2026-09-23 报的「birth 动画卡住了」就是这个）。
@@ -290,6 +293,9 @@ public class MountRider : MonoBehaviour
         // 出生动作等到 NpcAnimator 就绪再播（Instantiate 当帧它是没就绪的）
         if (!出生已开播)
             出生已开播 = 播坐骑动作("Birth", false);
+
+        // 出生期间坐骑**固定在最终骑乘高度**（跟着玩家升会和自己动画的上升叠成两倍）
+        摆坐骑(起始高度 + 骑乘高度);
 
         // 玩家：0 → 升空时长 之间升到骑乘高度；升空动画放完就转御风_Idle
         float k = 玩家升空时长 > 0.001f ? Mathf.Clamp01(过渡计时 / 玩家升空时长) : 1f;
@@ -407,13 +413,25 @@ public class MountRider : MonoBehaviour
 
     // ============================================================ 工具
 
-    void 摆坐骑()
+    /// <summary>按玩家当前位置摆（骑乘中/下坐骑时用）</summary>
+    void 摆坐骑() => 摆坐骑(transform.position.y);
+
+    /// <summary>
+    /// 按指定的「角色高度」摆坐骑。
+    ///
+    /// 【为什么需要这个重载】上坐骑时玩家是从地面**升到**骑乘高度的，
+    /// 而坐骑必须**从头到尾待在最终高度不动** —— 因为 Birth 动画自己就会
+    /// 从下方升上来（实测 Birth 首帧比末帧低 2.27 本地单位 ≈ 8.8m）。
+    /// 如果这里用玩家「当前」高度，坐骑会跟着在地面待一整段出生动画，
+    /// 然后进待机时「啪」地跳上 5.64m ✗（用户 2026-09-23 报的"Birth 最后位置没对齐"就是这个）
+    /// </summary>
+    void 摆坐骑(float 角色Y)
     {
         if (坐骑实例 == null) return;
         var t = 坐骑实例.transform;
-        // 位置：角色根 + 本地偏移（跟随角色朝向）
-        t.position = transform.position + transform.rotation * 坐骑相对偏移;
-        // 朝向：跟角色一致（+ 额外补偿）
+        var 基准 = transform.position;
+        基准.y = 角色Y;
+        t.position = 基准 + transform.rotation * 坐骑相对偏移;
         t.rotation = transform.rotation * Quaternion.Euler(坐骑朝向);
         if (坐骑实例.transform.localScale.x <= 0.0001f)   // 被消散缩到 0 后别复活
             坐骑实例.transform.localScale = Vector3.one * 坐骑缩放;
