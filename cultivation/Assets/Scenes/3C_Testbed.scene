@@ -7909,6 +7909,63 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 207045473}
   m_CullTransparentMesh: 1
+--- !u!1001 &207299126
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 100000, guid: 06305471085f25145a182dcf0030520d, type: 3}
+      propertyPath: m_Name
+      value: Chibang_01
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: 06305471085f25145a182dcf0030520d, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0.821
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: 06305471085f25145a182dcf0030520d, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -1.005
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: 06305471085f25145a182dcf0030520d, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.031
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: 06305471085f25145a182dcf0030520d, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.69202006
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: 06305471085f25145a182dcf0030520d, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: 06305471085f25145a182dcf0030520d, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.72187835
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: 06305471085f25145a182dcf0030520d, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: 06305471085f25145a182dcf0030520d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: 06305471085f25145a182dcf0030520d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 92.42
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: 06305471085f25145a182dcf0030520d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 06305471085f25145a182dcf0030520d, type: 3}
 --- !u!1001 &209328744
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -56705,6 +56762,18 @@ MonoBehaviour:
   "\u5750\u9A91\u76F8\u5BF9\u504F\u79FB": {x: 0.29, y: -4.85, z: 0.24}
   "\u5750\u9A91\u7F29\u653E": 3.8762
   "\u5750\u9A91\u671D\u5411": {x: 0, y: 0, z: 0}
+  "\u76EE\u6807\u7BA1\u7406\u5668": {fileID: 0}
+  "\u8DD1\u52A8\u52A8\u4F5C": Run
+  "\u8DD1\u52A8\u52A8\u4F5C\u5907\u7528":
+  - FightRun
+  "\u4E2A\u522B\u5750\u9A91\u6446\u4F4D":
+  - "\u5750\u9A91id": mount_chibang_01
+    "\u504F\u79FB": {x: 0.821, y: -1.005, z: 0.031}
+    "\u671D\u5411": {x: 0, y: 92.4, z: 0}
+    "\u7F29\u653E": 1
+  "\u671D\u5411\u59CB\u7EC8\u8DDF\u73A9\u5BB6\u7684\u5750\u9A91":
+  - mount_chibang_01
+  "\u5750\u9A91\u8F6C\u5411\u901F\u5EA6": 240
   "\u9A91\u4E58\u9AD8\u5EA6": 5.64
   "\u5750\u9A91\u79FB\u52A8\u901F\u5EA6": 9
   "\u884C\u8FDB\u5224\u5B9A\u901F\u5EA6": 0.2
@@ -56712,6 +56781,10 @@ MonoBehaviour:
   "\u6D88\u6563\u534A\u5F84": 2.5
   "\u63D0\u793A\u7EC4\u4EF6": {fileID: 1431189815}
   "\u6253\u5370\u65E5\u5FD7": 1
+  "\u51FA\u751F\u4FDD\u5E95\u65F6\u957F": 1.2
+  "\u51FA\u751F\u4FDD\u5E95\u7279\u6548\u989C\u8272": {r: 0.6, g: 0.9, b: 1, a: 1}
+  "\u51FA\u751F\u4FDD\u5E95\u7279\u6548\u534A\u5F84": 2
+  "\u51FA\u751F\u4FDD\u5E95\u7279\u6548\u62AC\u9AD8": 1
 --- !u!1 &1806017207
 GameObject:
   m_ObjectHideFlags: 0
@@ -68589,3 +68662,4 @@ SceneRoots:
   - {fileID: 1059389728}
   - {fileID: 1431189821}
   - {fileID: 711115169}
+  - {fileID: 207299126}

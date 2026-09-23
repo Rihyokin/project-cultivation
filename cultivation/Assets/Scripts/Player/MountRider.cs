@@ -118,6 +118,28 @@ public class MountRider : MonoBehaviour
     [Tooltip("跑动动作的备用名。主名播不出来时依次试这些（碧水兽的控制器把跑动状态叫 FightRun，见代码注释）")]
     public string[] 跑动动作备用 = { "FightRun" };
 
+    /// <summary>单只坐骑的摆位覆盖。留空就用上面那套通用值。</summary>
+    [System.Serializable]
+    public class 坐骑摆位
+    {
+        [Tooltip("坐骑id，例如 mount_chibang_01")]
+        public string 坐骑id = "";
+        [Tooltip("相对角色根的本地偏移")]
+        public Vector3 偏移 = new Vector3(0f, -4.85f, 0f);
+        [Tooltip("相对角色朝向的额外旋转（欧拉角）")]
+        public Vector3 朝向 = Vector3.zero;
+        [Tooltip("缩放。0 或负数 = 用通用的 坐骑缩放")]
+        public float 缩放 = 0f;
+    }
+
+    [Tooltip("针对某只坐骑的摆位覆盖。**从场景里摆好的实例量出来**，别手填")]
+    public 坐骑摆位[] 个别坐骑摆位 = new 坐骑摆位[0];
+
+    [Header("个别坐骑的行为覆盖")]
+    [Tooltip("这些坐骑**朝向时刻跟玩家、永远待在背后**，不参与「行进时朝移动方向」那套。\n" +
+             "翅膀（灵翅 mount_chibang_01）就是这种：它是长在背上的，不可能自己转头")]
+    public string[] 朝向始终跟玩家的坐骑 = { "mount_chibang_01" };
+
     [Tooltip("坐骑转向速度（度/秒）。停步后转回玩家朝向、以及朝移动方向转，都走这个速度")]
     public float 坐骑转向速度 = 240f;
 
@@ -292,6 +314,8 @@ public class MountRider : MonoBehaviour
         //（用户 2026-09-23 报的「birth 动画卡住了」就是这个）。
         // 改成每帧重试，成功为止，见 更新上坐骑()。
         出生已开播 = false;
+        保底特效已放 = false;
+        无出生动画 = !有出生动画();     // 没有 Birth 的坐骑 → 走「粒子 + 淡入」保底
 
         锁住御风();
         角色目标高度 = 起始高度 + 骑乘高度;
@@ -309,6 +333,8 @@ public class MountRider : MonoBehaviour
 
     float 起始高度;
     bool 出生已开播;
+    bool 无出生动画;          // 这只坐骑没有 Birth 动作（除碧水兽外其余 7 只都没有）→ 走保底
+    bool 保底特效已放;
 
     /// <summary>播坐骑动作。NpcAnimator 没就绪时返回 false，调用方可以重试</summary>
     bool 播坐骑动作(string 名, bool 循环)
@@ -321,16 +347,44 @@ public class MountRider : MonoBehaviour
         return 坐骑动画.PlayAction(名, 循环);
     }
 
+    /// <summary>这只坐骑有没有 Birth 动作</summary>
+    bool 有出生动画()
+    {
+        if (坐骑动画 == null) return false;
+        var 表 = 坐骑动画.AvailableActions;
+        return 表 != null && System.Array.IndexOf(表, "Birth") >= 0;
+    }
+
     void 更新上坐骑()
     {
         过渡计时 += Time.deltaTime;
 
         // 出生动作等到 NpcAnimator 就绪再播（Instantiate 当帧它是没就绪的）
         if (!出生已开播)
-            出生已开播 = 播坐骑动作("Birth", false);
+        {
+            if (无出生动画)
+            {
+                // ★ 保底：没有 Birth 的坐骑用「粒子 + 淡入」顶上（用户 2026-09-23 要求）
+                出生已开播 = true;
+                if (!保底特效已放 && 坐骑实例 != null)
+                {
+                    保底特效已放 = true;
+                    NpcDissolveEffect.播放(坐骑实例.transform.position + Vector3.up * 出生保底特效抬高,
+                                          出生保底特效半径, 出生保底特效颜色);
+                }
+            }
+            else 出生已开播 = 播坐骑动作("Birth", false);
+        }
 
         // 出生期间坐骑**固定在最终骑乘高度**（跟着玩家升会和自己动画的上升叠成两倍）
         摆坐骑(起始高度 + 骑乘高度);
+
+        // 没有 Birth 时用缩放淡入代替（0 → 原缩放）
+        if (无出生动画 && 坐骑实例 != null)
+        {
+            float kk = 出生保底时长 > 0.001f ? Mathf.Clamp01(过渡计时 / 出生保底时长) : 1f;
+            坐骑实例.transform.localScale = Vector3.one * (实用缩放() * Mathf.SmoothStep(0f, 1f, kk));
+        }
 
         // 玩家：0 → 升空时长 之间升到骑乘高度；升空动画放完就转御风_Idle
         float k = 玩家升空时长 > 0.001f ? Mathf.Clamp01(过渡计时 / 玩家升空时长) : 1f;
@@ -341,13 +395,36 @@ public class MountRider : MonoBehaviour
 
         if (过渡计时 >= 上坐骑总时长)
         {
-            if (坐骑动画 != null) 坐骑动画.PlayAction("Idle", true);
+            // 保底路径要把缩放复原（摆坐骑 里那句只在缩放到 0 时才兜底）
+            if (无出生动画 && 坐骑实例 != null)
+                坐骑实例.transform.localScale = Vector3.one * 实用缩放();
+            播坐骑动作("Idle", true);
             切到(骑乘状态.坐骑待机);
             if (打印日志) Debug.Log("[坐骑] 上坐骑完成 → 坐骑待机", this);
         }
     }
 
-    float 上坐骑总时长 => Mathf.Max(玩家升空时长, 坐骑出生时长);
+    /// <summary>上坐骑总时长：有 Birth 就用它的时长，没有就用保底时长</summary>
+    float 上坐骑总时长 => Mathf.Max(玩家升空时长, 无出生动画 ? 出生保底时长 : 坐骑出生时长);
+
+    /// <summary>这只坐骑实际用的缩放（有覆盖就用覆盖）</summary>
+    float 实用缩放()
+    {
+        var 覆盖 = 取摆位覆盖();
+        return (覆盖 != null && 覆盖.缩放 > 0.0001f) ? 覆盖.缩放 : 坐骑缩放;
+    }
+
+    // （上坐骑总时长 见上面 —— 会按这只坐骑有没有 Birth 动画自动切换）
+
+    [Header("没有 Birth 动画时的保底")]
+    [Tooltip("保底淡入时长（秒）。有 Birth 的坐骑用不到这个")]
+    public float 出生保底时长 = 1.2f;
+    [Tooltip("保底粒子颜色")]
+    public Color 出生保底特效颜色 = new Color(0.6f, 0.9f, 1f, 1f);
+    [Tooltip("保底粒子半径")]
+    public float 出生保底特效半径 = 2f;
+    [Tooltip("保底粒子相对坐骑根抬高多少")]
+    public float 出生保底特效抬高 = 1f;
 
     // ============================================================ 骑乘中
 
@@ -480,18 +557,24 @@ public class MountRider : MonoBehaviour
         if (坐骑实例 == null) return;
         var t = 坐骑实例.transform;
 
+        // ---- 这只坐骑实际用哪套摆位（有覆盖就用覆盖）----
+        var 覆盖 = 取摆位覆盖();
+        Vector3 偏移 = 覆盖 != null ? 覆盖.偏移 : 坐骑相对偏移;
+        Vector3 朝向 = 覆盖 != null ? 覆盖.朝向 : 坐骑朝向;
+        float 缩放 = (覆盖 != null && 覆盖.缩放 > 0.0001f) ? 覆盖.缩放 : 坐骑缩放;
+
         // ---- 位置：始终挂在玩家根上，用玩家朝向算偏移 ----
         // 【为什么位置用玩家朝向、不用坐骑朝向】玩家必须始终坐在坐骑背上。
         // 如果偏移跟着坐骑自身的 yaw 走，坐骑一转向玩家就会从背上滑到侧面去 ✗
         var 基准 = transform.position;
         基准.y = 角色Y;
-        t.position = 基准 + transform.rotation * 坐骑相对偏移;
+        t.position = 基准 + transform.rotation * 偏移;
 
-        // ---- 朝向：和玩家**分开**算 ----
-        // 用户 2026-09-23 要的行为：
-        //   · 行进中 **且玩家有锁定** → 坐骑朝**移动方向**（玩家自己继续正面锁敌）
-        //   · 其他情况（没锁定 / 停下来）→ 坐骑跟**玩家朝向**
-        // 因为是 MoveTowardsAngle，"移动停止后坐骑再转回玩家朝向"是自然发生的 ✓
+        // ---- 朝向 ----
+        // 两种行为：
+        //   · 普通坐骑（§34.8）：行进中且有锁定 → 朝移动方向；否则跟玩家
+        //   · **长在身上的**（翅膀那种）→ **时刻跟玩家**，不参与上面那套
+        //     （翅膀是长在背上的，不可能自己转头；用户 2026-09-23 明确要求）
         if (目标管理器 == null) 目标管理器 = GetComponent<NpcTargeting>();
 
         // 换了一只坐骑就重新取一次初始朝向
@@ -501,23 +584,39 @@ public class MountRider : MonoBehaviour
         if (!坐骑Yaw已初始化) { 当前坐骑Yaw = 玩家Yaw; 坐骑Yaw已初始化 = true; }
 
         float 目标Yaw = 玩家Yaw;
-        bool 有锁定 = 目标管理器 != null && 目标管理器.LockedNpc != null;
-        var 移动方向 = 控制器 != null ? 控制器.MoveDirection : Vector3.zero;
-        移动方向.y = 0f;
-        if (行进中 && 有锁定 && 移动方向.sqrMagnitude > 0.0001f)
-            目标Yaw = Quaternion.LookRotation(移动方向.normalized, Vector3.up).eulerAngles.y;
+        if (!朝向始终跟玩家)
+        {
+            bool 有锁定 = 目标管理器 != null && 目标管理器.LockedNpc != null;
+            var 移动方向 = 控制器 != null ? 控制器.MoveDirection : Vector3.zero;
+            移动方向.y = 0f;
+            if (行进中 && 有锁定 && 移动方向.sqrMagnitude > 0.0001f)
+                目标Yaw = Quaternion.LookRotation(移动方向.normalized, Vector3.up).eulerAngles.y;
+        }
 
         当前坐骑Yaw = 坐骑转向速度 <= 0f
             ? 目标Yaw
             : Mathf.MoveTowardsAngle(当前坐骑Yaw, 目标Yaw, 坐骑转向速度 * Time.deltaTime);
 
-        t.rotation = Quaternion.Euler(0f, 当前坐骑Yaw, 0f) * Quaternion.Euler(坐骑朝向);
+        t.rotation = Quaternion.Euler(0f, 当前坐骑Yaw, 0f) * Quaternion.Euler(朝向);
 
         if (坐骑实例.transform.localScale.x <= 0.0001f)   // 被消散缩到 0 后别复活
-            坐骑实例.transform.localScale = Vector3.one * 坐骑缩放;
+            坐骑实例.transform.localScale = Vector3.one * 缩放;
     }
 
     GameObject 上次摆位实例;
+
+    /// <summary>这只坐骑有没有单独的摆位覆盖</summary>
+    坐骑摆位 取摆位覆盖()
+    {
+        if (坐骑定义 == null || 个别坐骑摆位 == null) return null;
+        foreach (var b in 个别坐骑摆位)
+            if (b != null && !string.IsNullOrEmpty(b.坐骑id) && b.坐骑id == 坐骑定义.坐骑id) return b;
+        return null;
+    }
+
+    /// <summary>是不是「长在身上、朝向必须时刻跟玩家」的坐骑（翅膀）</summary>
+    bool 朝向始终跟玩家 => 坐骑定义 != null && 朝向始终跟玩家的坐骑 != null
+        && System.Array.IndexOf(朝向始终跟玩家的坐骑, 坐骑定义.坐骑id) >= 0;
 
     void 锁住御风()
     {
