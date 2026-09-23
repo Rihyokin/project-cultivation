@@ -405,21 +405,20 @@ public class MountRider : MonoBehaviour
         // 出生期间坐骑**固定在最终骑乘高度**（跟着玩家升会和自己动画的上升叠成两倍）
         摆坐骑(起始高度 + 骑乘高度);
 
-        // 没有 Birth 时用缩放淡入代替（0 → 原缩放），**并且按网格中心缩放** ——
-        // 用户要求「出生淡入时也要卡死在角色后方」：直接缩根的话，网格中心会从
-        // 「根的位置」滑到「根+本地偏移」，看起来就是从背后滑进来 ✗
-        // 这里把根反向补偿，让**网格中心钉在原地不动**，只有体积在长出来。
+        // 没有 Birth 时用「从小变大」代替淡入（用户 2026-09-23 选的效果）：
+        // 起始很小 → 平滑长到正常体积。
+        //
+        // 【为什么不做位置补偿了】上一版按**绑定姿势的 localBounds** 反推补偿，
+        // 实测仍有 0.197m 水平漂移（蒙皮网格的 localBounds 和实际 bounds 不一致）。
+        // 现在干脆**不补**：让翅膀从「根的位置」往外长 —— 而坐骑根就落在**角色下背**，
+        // 所以看起来就是**从背后长出来**，方向本身就是对的 ✓
+        // 既不用和蒙皮包围盒较劲，也**不会有任何漂移**（因为压根没有补偿量可算错）。
         if (无出生动画 && 坐骑实例 != null)
         {
             float kk = 出生保底时长 > 0.001f ? Mathf.Clamp01(过渡计时 / 出生保底时长) : 1f;
             float s = Mathf.SmoothStep(0f, 1f, kk);
-            float 目标缩放 = 实用缩放();
-            坐骑实例.transform.localScale = Vector3.one * (目标缩放 * s);
-
-            var 中心 = 取网格本地中心();
-            if (中心.HasValue)
-                坐骑实例.transform.position += 坐骑实例.transform.rotation
-                    * (中心.Value * 目标缩放 * (1f - s));
+            float 倍率 = Mathf.Lerp(出生保底起始缩放, 1f, s);
+            坐骑实例.transform.localScale = Vector3.one * (实用缩放() * 倍率);
         }
 
         // 玩家：0 → 升空时长 之间升到骑乘高度；升空动画放完就转御风_Idle
@@ -457,6 +456,9 @@ public class MountRider : MonoBehaviour
     public float 出生保底时长 = 1.2f;
     [Tooltip("保底粒子颜色")]
     public Color 出生保底特效颜色 = new Color(0.6f, 0.9f, 1f, 1f);
+    [Tooltip("保底「从小变大」的起始体积倍率。0.05 = 一开始只有正常体积的 5%")]
+    [Range(0f, 1f)]
+    public float 出生保底起始缩放 = 0.05f;
     [Tooltip("保底粒子半径")]
     public float 出生保底特效半径 = 2f;
     [Tooltip("保底粒子相对坐骑根抬高多少")]
