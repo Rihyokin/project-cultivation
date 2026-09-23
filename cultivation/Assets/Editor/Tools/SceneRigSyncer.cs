@@ -89,6 +89,7 @@ public static class SceneRigSyncer
                     //   覆盖前先记下这些调参，覆盖后原样还回去 —— 否则每次同步都会把别人的调参冲掉 ✗
                     float sMin = 0f, sMax = 0f, hMin = 0f, hMax = 0f, 格 = 0f;
                     bool 有调参 = false;
+                    bool 旧有透视 = false; float 透度 = 0.22f; int 射数 = 5; float 身高 = 1.8f, 保持 = 0.12f;
                     if (k == "Main Camera" && 有)
                     {
                         var 旧 = 目标根[k].GetComponent<TopDownCameraZoom>();
@@ -99,6 +100,10 @@ public static class SceneRigSyncer
                             hMin = 旧.hardMin; hMax = 旧.hardMax;
                             格 = 旧.zoomPerNotch;
                         }
+                        // ★ 遮挡透视是**场景自己的开关**（用户 2026-09-23：只在镇妖塔生效）。
+                        //   所以"本场景有没有"要和调参一样被保留，不能跟着源场景一起覆盖 ✗
+                        var 旧透 = 目标根[k].GetComponent<OcclusionTransparency>();
+                        if (旧透 != null) { 旧有透视 = true; 透度 = 旧透.透明度; 射数 = 旧透.射线数; 身高 = 旧透.身高; 保持 = 旧透.保持; }
                     }
 
                     if (有) Object.DestroyImmediate(目标根[k]);
@@ -117,6 +122,21 @@ public static class SceneRigSyncer
                             新.hardMin = hMin; 新.hardMax = hMax;
                             新.zoomPerNotch = 格;
                             Debug.Log("[装配同步]   已保留本场景的滚轮调参：软 " + sMin + "~" + sMax + " 硬 " + hMin + "~" + hMax);
+                        }
+                    }
+                    if (k == "Main Camera")
+                    {
+                        var 新透 = 搬.GetComponent<OcclusionTransparency>();
+                        if (旧有透视)
+                        {
+                            if (新透 == null) 新透 = 搬.AddComponent<OcclusionTransparency>();
+                            新透.透明度 = 透度; 新透.射线数 = 射数; 新透.身高 = 身高; 新透.保持 = 保持;
+                            Debug.Log("[装配同步]   已保留本场景的遮挡透视（源场景没有也保留）");
+                        }
+                        else if (新透 != null)
+                        {
+                            Object.DestroyImmediate(新透);
+                            Debug.Log("[装配同步]   本场景没有遮挡透视 → 移除（它是场景自己的开关）");
                         }
                     }
                 }
