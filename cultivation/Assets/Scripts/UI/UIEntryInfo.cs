@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -58,6 +58,12 @@ public class UIEntryInfo : MonoBehaviour
     {
         if (Current is PassiveDivineAbility p && data != null)
             data.TogglePassive(p);          // 会触发 Changed，列表跟着刷新
+        else if (Current is MountDefinition m && data != null)
+        {
+            // 装备 / 取消装备坐骑。再点一次同一只 = 卸下
+            data.当前坐骑 = (data.当前坐骑 == m) ? null : m;
+            data.RaiseChanged();            // 会触发 Changed，坐骑页和骑乘系统都跟着刷新
+        }
 
         RefreshActionState();
         ActionClicked?.Invoke(Current);
@@ -106,15 +112,31 @@ public class UIEntryInfo : MonoBehaviour
         RefreshActionState();
     }
 
-    /// <summary>刷新「启用/停用」按钮的显隐与文字</summary>
+    /// <summary>
+    /// 刷新操作按钮的显隐与文字。
+    /// 两种条目会用到这个按钮：**被动神通**（启用 / 停用）、**坐骑**（装备坐骑 / 取消装备）。
+    /// </summary>
     public void RefreshActionState()
     {
         if (actionButton == null) return;
 
         var passive = Current as PassiveDivineAbility;
-        bool show = passive != null && data != null;
+        var mount = Current as MountDefinition;
+
+        bool show = data != null && (passive != null || mount != null);
         actionButton.gameObject.SetActive(show);
         if (!show) return;
+
+        // ---- 坐骑：装备 / 取消装备 ----
+        if (mount != null)
+        {
+            bool 已装备 = data.当前坐骑 == mount;
+            if (actionLabel != null) actionLabel.text = 已装备 ? "取消装备" : "装备坐骑";
+            actionButton.image.color = 已装备
+                ? new Color(0.85f, 0.45f, 0.35f)      // 已装备 → 点它是卸下，用暖色
+                : new Color(0.40f, 0.70f, 0.45f);     // 未装备 → 点它是装上，用冷色
+            return;
+        }
 
         bool enabled = data.IsPassiveEnabled(passive);
         if (actionLabel != null) actionLabel.text = enabled ? "停用" : "启用";

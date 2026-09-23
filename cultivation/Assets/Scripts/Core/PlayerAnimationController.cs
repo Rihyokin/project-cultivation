@@ -568,10 +568,55 @@ public class PlayerAnimationController : MonoBehaviour
         维护技能动作();
 
         // 御风参数
-        if (御风 != null)
+        // ★ 外部驱动（坐骑借用这套动画）时，改由外部写 —— 否则坐骑刚触发的
+        //   Flying/FlyMoving 会被这里每帧按 YufengFlight 的状态覆盖回去 ✗
+        if (外部驱动御风)
+        {
+            animator.SetBool(flyingHash, 外部飞行中);
+            animator.SetBool(flyMovingHash, 外部移动中);
+        }
+        else if (御风 != null)
         {
             animator.SetBool(flyingHash, 御风.御风流程中);
             animator.SetBool(flyMovingHash, smoothSpeed > 0.15f);
         }
+    }
+
+    // ============================================================ 外部驱动（坐骑）
+
+    /// <summary>
+    /// 勾上 = `Flying` / `FlyMoving` 不再由 <see cref="YufengFlight"/> 决定，改由外部写。
+    /// 坐骑就是靠这个**借用**御风的四个片段（升空 / Idle / 前进 / 落地），
+    /// 而**不真的进入御风流程**（骑乘时不能起飞、也不掉高度，高度归坐骑管）。
+    /// </summary>
+    public bool 外部驱动御风 { get; private set; }
+
+    bool 外部飞行中, 外部移动中;
+
+    /// <summary>外部接管御风动画：流程中 = 用 Flying/FlyMoving 两个 bool；传 false 交还给 YufengFlight</summary>
+    public void 设置外部御风(bool 流程中, bool 移动中)
+    {
+        外部驱动御风 = 流程中;
+        外部飞行中 = 流程中;
+        外部移动中 = 移动中;
+        if (animator != null && animator.runtimeAnimatorController != null)
+        {
+            animator.SetBool(flyingHash, 流程中);
+            animator.SetBool(flyMovingHash, 移动中);
+        }
+    }
+
+    /// <summary>外部触发升空段（坐骑上坐骑时用）</summary>
+    public void 触发升空()
+    {
+        if (animator != null && animator.runtimeAnimatorController != null)
+            animator.SetTrigger(takeOffHash);
+    }
+
+    /// <summary>外部触发落地段（坐骑下坐骑时用）</summary>
+    public void 触发落地()
+    {
+        if (animator != null && animator.runtimeAnimatorController != null)
+            animator.SetTrigger(landHash);
     }
 }

@@ -74,6 +74,13 @@ public class YufengFlight : MonoBehaviour
     [Tooltip("勾上就无视 Shift 一直保持御风，方便调试 / 以后做剧情飞行")]
     public bool 强制御风 = false;
 
+    /// <summary>
+    /// **禁止切换御风**。骑乘坐骑期间由 <see cref="MountRider"/> 打开 ——
+    /// 用户定的规则：**骑乘坐骑时无法开始御风，但也不会掉高度**（高度归坐骑管）。
+    /// 只挡「按 Shift 切换」，已经在御风中的收尾流程照常走完。
+    /// </summary>
+    public bool 禁止切换 = false;
+
     /// <summary>当前状态</summary>
     public FlightState 状态 { get; private set; } = FlightState.地面;
 
@@ -212,6 +219,7 @@ public class YufengFlight : MonoBehaviour
     void 读取切换输入()
     {
         if (强制御风) { 想飞 = true; return; }
+        if (禁止切换) return;      // 骑乘坐骑期间不许起飞
 
         bool 按下 = Input.GetKeyDown(切换键)
                  || (切换键2 != KeyCode.None && Input.GetKeyDown(切换键2));
@@ -227,6 +235,7 @@ public class YufengFlight : MonoBehaviour
     public void 切换()
     {
         if (强制御风) { 想飞 = true; return; }
+        if (禁止切换) return;      // 骑乘坐骑期间不许起飞
 
         // 升空 / 落地过渡中不响应 —— 免得刚起飞就被自己取消掉
         if (状态 == FlightState.升空 || 状态 == FlightState.落地) return;

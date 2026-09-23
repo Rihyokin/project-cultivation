@@ -43,6 +43,9 @@ public class PlayerController : MonoBehaviour
     [Tooltip("凭虚御风。留空则自动在本体找 YufengFlight；没有就不启用御风")]
     public YufengFlight 御风;
 
+    [Tooltip("坐骑系统。留空则自动在本体找 MountRider；没有就不启用骑乘")]
+    public MountRider 坐骑;
+
     [Tooltip("锁定/选中管理器。留空则自动在本体找 NpcTargeting")]
     public NpcTargeting 目标管理器;
 
@@ -74,6 +77,7 @@ public class PlayerController : MonoBehaviour
     {
         controller = GetComponent<CharacterController>();
         if (御风 == null) 御风 = GetComponent<YufengFlight>();
+        if (坐骑 == null) 坐骑 = GetComponent<MountRider>();
         if (目标管理器 == null) 目标管理器 = GetComponent<NpcTargeting>();
         if (cameraTransform == null && Camera.main != null)
             cameraTransform = Camera.main.transform;
@@ -88,15 +92,20 @@ public class PlayerController : MonoBehaviour
         // 凭虚御风生效时，Shift 从「按住奔跑」变成「按一下切换飞行」（见 YufengFlight）
         IsFlying = 御风 != null && 御风.御风流程中;
         bool 飞行中 = 御风 != null && 御风.御风中;
+        // 骑乘中：不能起飞（YufengFlight.禁止切换 挡住），高度交给坐骑系统
+        bool 骑乘中 = 坐骑 != null && 坐骑.骑乘中;
 
         // 水平速度：带加/减速，避免瞬间起停的僵硬感
-        float targetSpeed = 飞行中 ? 御风.飞行速度 : (running ? runSpeed : walkSpeed);
+        float targetSpeed = 骑乘中 ? 坐骑.骑乘速度
+                         : (飞行中 ? 御风.飞行速度 : (running ? runSpeed : walkSpeed));
         Vector3 targetVelocity = desired * targetSpeed;
         float rate = desired.sqrMagnitude > 0.0001f ? acceleration : deceleration;
         horizontalVelocity = Vector3.MoveTowards(horizontalVelocity, targetVelocity, rate * Time.deltaTime);
 
         if (IsFlying)
             ApplyFlightHeight();
+        else if (骑乘中)
+            ApplyMountHeight();
         else
             ApplyGravity();
 
@@ -107,7 +116,8 @@ public class PlayerController : MonoBehaviour
         FaceDirection(desired);
 
         CurrentSpeed = horizontalVelocity.magnitude;
-        float 上限速度 = 飞行中 ? Mathf.Max(0.01f, 御风.飞行速度) : runSpeed;
+        float 上限速度 = 骑乘中 ? Mathf.Max(0.01f, 坐骑.骑乘速度)
+                       : (飞行中 ? Mathf.Max(0.01f, 御风.飞行速度) : runSpeed);
         Speed01 = 上限速度 > 0.0001f ? Mathf.Clamp01(CurrentSpeed / 上限速度) : 0f;
     }
 
@@ -159,6 +169,18 @@ public class PlayerController : MonoBehaviour
             verticalVelocity = -2f;
 
         verticalVelocity += gravity * Time.deltaTime;
+    }
+
+    /// <summary>
+    /// 骑乘时的高度：由坐骑系统给目标高度，**不走重力**。
+    /// 用户定的规则：「骑乘坐骑时无法开始御风，但是同样不会掉高度」——
+    /// 所以这里只做比例控制把人拉到 <see cref="MountRider.角色目标高度"/>，不消耗灵气。
+    /// </summary>
+    void ApplyMountHeight()
+    {
+        float 目标Y = 坐骑.角色目标高度;
+        // 比例控制，和 ApplyFlightHeight 同一套，避免直接除 dt 造成抖动
+        verticalVelocity = Mathf.Clamp((目标Y - transform.position.y) * 8f, -10f, 10f);
     }
 
     /// <summary>
