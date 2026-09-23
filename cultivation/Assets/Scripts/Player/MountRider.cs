@@ -110,6 +110,14 @@ public class MountRider : MonoBehaviour
              "用来判断「有没有锁定」—— 有锁定且行进中时，坐骑朝移动方向、玩家继续正面锁敌")]
     public NpcTargeting 目标管理器;
 
+    [Tooltip("坐骑「行进」动作名。**统一用 Run** —— 用户 2026-09-23 定：\n" +
+             "碧水兽原本叫 FightRun，八个坐骑里只有它这么叫，其余都是 Run，\n" +
+             "所以把它的状态名也改成了 Run，这样所有坐骑共用一套命名")]
+    public string 跑动动作 = "Run";
+
+    [Tooltip("跑动动作的备用名。主名播不出来时依次试这些（碧水兽的控制器把跑动状态叫 FightRun，见代码注释）")]
+    public string[] 跑动动作备用 = { "FightRun" };
+
     [Tooltip("坐骑转向速度（度/秒）。停步后转回玩家朝向、以及朝移动方向转，都走这个速度")]
     public float 坐骑转向速度 = 240f;
 
@@ -305,7 +313,11 @@ public class MountRider : MonoBehaviour
     /// <summary>播坐骑动作。NpcAnimator 没就绪时返回 false，调用方可以重试</summary>
     bool 播坐骑动作(string 名, bool 循环)
     {
-        if (坐骑动画 == null) return false;
+        if (坐骑动画 == null || string.IsNullOrEmpty(名)) return false;
+        // 先查可用动作表再播 —— 否则 NpcAnimator 会为每个找不到的名字打一条警告，
+        // 而"主名没有、走备用名"是常态（碧水兽的 Run 就是这种情况），会刷屏
+        var 表 = 坐骑动画.AvailableActions;
+        if (表 == null || System.Array.IndexOf(表, 名) < 0) return false;
         return 坐骑动画.PlayAction(名, 循环);
     }
 
@@ -350,7 +362,22 @@ public class MountRider : MonoBehaviour
         if (该行进 != 行进中)
         {
             行进中 = 该行进;
-            if (坐骑动画 != null) 坐骑动画.PlayAction(该行进 ? "FightRun" : "Idle", true);
+            if (坐骑动画 != null)
+            {
+                if (该行进)
+                {
+                    // 优先用 跑动动作（"Run"），没有就依次试备用名
+                    // 【为什么要备用】八个坐骑里只有碧水兽的控制器把跑动状态叫 FightRun，
+                    // 其余都是 Run。本想直接把碧水兽那个状态改名统一，但实测
+                    // `AnimatorState.name = "..."` + SetDirty + SaveAssets **只改内存、不落盘**
+                    //（AssetDatabase.LoadAssetAtPath 返回的是缓存对象，会骗过"重新读盘"的检查），
+                    // 运行时读到的仍是 FightRun。所以这里做兼容，两种命名都能跑 ✓
+                    if (!播坐骑动作(跑动动作, true))
+                        foreach (var 备 in 跑动动作备用)
+                            if (!string.IsNullOrEmpty(备) && 播坐骑动作(备, true)) break;
+                }
+                else 播坐骑动作("Idle", true);
+            }
             if (动画 != null) 动画.设置外部御风(true, 该行进);
             切到(该行进 ? 骑乘状态.坐骑行进中 : 骑乘状态.坐骑待机);
         }
