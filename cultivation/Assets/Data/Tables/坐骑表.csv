@@ -4,7 +4,7 @@ mount_langqi_01,狼骑,玄品,10,NPC/Mount/LangQi_01/LangQi_01,Idle,北地雪狼
 mount_luzuoqi_01,灵鹿,玄品,20,NPC/Mount/LuZuoQi/LuZuoQi_01,Idle,山中灵鹿。踏雾而行，久乘可养气活血。,80,0,4,0,0.25,0,0,0.03,0,0,1,0,0,0,0
 mount_bishuishou_01,碧水兽,地品,25,NPC/Mount/BiShuiShou_01/BiShuiShou_01,Idle,碧水之兽。周身水气缭绕，载之可避火毒、护体生津。,250,0,18,60,0.22,0,0.04,0,0,0,2,1,0.03,0.02,0
 mount_xiongmaozuoqi_01,熊猫坐骑,地品,30,NPC/Mount/XiongMaoZuoQi/XiongMaoZuoQi_01,Idle,蜀中异兽。皮糙肉厚、憨态可掬，坐上去稳如泰山。,200,6,24,0,0.2,0,0.03,0,0,0,2,0,0.05,0,0
-mount_zhanqi_01,战骑,地品,35,NPC/Mount/ZhanQi_01/ZhanQi_01,Idle,战阵之骑。披甲衔枚，与主人同进退。,60,22,16,0,0.25,0.03,0,0,0,0.05,0,0,0.02,0,0
+mount_zhanqi_01,灵鹤,地品,35,NPC/Mount/ZhanQi_01/ZhanQi_01,Idle,战阵之骑。披甲衔枚，与主人同进退。,60,22,16,0,0.25,0.03,0,0,0,0.05,0,0,0.02,0,0
 mount_qilingzuoqi_01,麒麟坐骑,天品,45,NPC/Mount/QiLingZuoQi/QiLingZuoQi_01,Idle,瑞兽麒麟。仁德之兆，所至之处百邪不侵。,300,30,26,80,0.3,0,0.05,0.03,0.05,0,3,2,0.06,0.05,0.05
 mount_julong_01,巨龙,天品,60,NPC/Mount/JuLong_01/JuLong_01,ZhanLi,翼展如云的巨龙。一啸惊天，风雷相随。,400,50,20,120,0.35,0.05,0,0,0,0.05,2,2,0.04,0.05,0.05
 mount_shenlong_01,上古神龙,仙品,75,NPC/Mount/ShenLong_01/ShenLong_01,CINEMA_4D___,上古遗种。绕身盘旋之际云气自生，乘之可凌虚御空。,600,80,34,200,0.45,0.08,0.06,0.05,0.1,0.08,4,3,0.08,0.08,0.08

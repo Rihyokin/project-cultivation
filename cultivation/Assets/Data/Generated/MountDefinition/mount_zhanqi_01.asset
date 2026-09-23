@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cf7de0e8b934ded4abc9845a5264bfa0, type: 3}
   m_Name: mount_zhanqi_01
   m_EditorClassIdentifier: 
-  "\u5750\u9A91\u540D\u79F0": "\u6218\u9A91"
+  "\u5750\u9A91\u540D\u79F0": "\u7075\u9E64"
   "\u5750\u9A91id": mount_zhanqi_01
   "\u5750\u9A91\u54C1\u9636": 3
   "\u4FEE\u70BC\u95E8\u69DB": 35
