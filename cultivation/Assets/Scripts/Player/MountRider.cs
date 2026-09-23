@@ -97,13 +97,14 @@ public class MountRider : MonoBehaviour
              "用来判断「有没有锁定」—— 有锁定且行进中时，坐骑朝移动方向、玩家继续正面锁敌")]
     public NpcTargeting 目标管理器;
 
-    [Tooltip("坐骑「行进」动作名。**统一用 Run** —— 用户 2026-09-23 定：\n" +
-             "碧水兽原本叫 FightRun，八个坐骑里只有它这么叫，其余都是 Run，\n" +
-             "所以把它的状态名也改成了 Run，这样所有坐骑共用一套命名")]
-    public string 跑动动作 = "Run";
-
-    [Tooltip("跑动动作的备用名。主名播不出来时依次试这些（碧水兽的控制器把跑动状态叫 FightRun，见代码注释）")]
+    [Tooltip("跑动动作名的备用列表（某只坐骑配的跑动动作在它控制器里叫别的名字时用）")]
     public string[] 跑动动作备用 = { "FightRun" };
+
+    [Tooltip("消失动作名的备用列表。\n" +
+             "★ 用户 2026-09-23 定：下坐骑播的是「死/消散」，**不该叫 LeveUp**（那是升级）。\n" +
+             "但碧水兽控制器里的状态实际写的字面是 `Die`（不是 dead），所以主名用 Die，\n" +
+             "这里把 dead / LeveUp 都留着兜底 —— 换控制器时不用改代码")]
+    public string[] 消失动作备用 = { "dead", "Dead", "LeveUp" };
 
     /// <summary>单只坐骑的摆位。**每只坐骑一条**，不再有全局值可退。</summary>
     [System.Serializable]
@@ -126,10 +127,47 @@ public class MountRider : MonoBehaviour
              "填法：从场景里摆好的实例量出来，别手填（量法见 开发注意事项 §34.9/§34.14）")]
     public 坐骑摆位[] 坐骑摆位表 = new 坐骑摆位[0];
 
+    /// <summary>
+    /// 单只坐骑的四个阶段动作。**同一个动作可以兼任多个阶段，靠速度区分**。
+    ///
+    /// 用户 2026-09-23 定的用法（上古神龙）：它只有一个动作 `CINEMA_4D___`（环绕飞行），
+    /// 同时当 idle / birth / run / dead 用 —— idle 0.5 倍速、run 1 倍速、birth 与 dead 1.7 倍速。
+    /// 「**最好不要拆开，只改变速度就可以了**」—— 所以这里只配名字和速度，不复制片段。
+    /// </summary>
+    [System.Serializable]
+    public class 坐骑动作
+    {
+        [Tooltip("坐骑id，和 坐骑表.csv 第一列一致")]
+        public string 坐骑id = "";
+        [Tooltip("待机动作名")]
+        public string 待机动作 = "Idle";
+        [Tooltip("待机播放速度")]
+        public float 待机速度 = 1f;
+        [Tooltip("移动动作名")]
+        public string 跑动动作 = "Run";
+        [Tooltip("移动播放速度")]
+        public float 跑动速度 = 1f;
+        [Tooltip("出生动作名。**留空 = 这只没有出生动画**，走「粒子 + 从小变大」保底")]
+        public string 出生动作 = "Birth";
+        [Tooltip("出生播放速度")]
+        public float 出生速度 = 1f;
+        [Tooltip("消失（下坐骑）动作名。不叫 LeveUp —— 那是升级")]
+        public string 消失动作 = "Die";
+        [Tooltip("消失播放速度")]
+        public float 消失速度 = 1f;
+    }
+
+    [Tooltip("★ 每只坐骑的动作配置，一只一条。\n" +
+             "支持「一个动作兼四个阶段」：把四个名字填成同一个、只改速度即可（上古神龙就是这样）。\n" +
+             "缺了不会崩，会按 Idle/Run/Birth/Die 全 1 倍速兜底")]
+    public 坐骑动作[] 坐骑动作表 = new 坐骑动作[0];
+
     [Header("个别坐骑的行为覆盖")]
-    [Tooltip("这些坐骑**朝向时刻跟玩家、永远待在背后**，不参与「行进时朝移动方向」那套。\n" +
-             "翅膀（灵翅 mount_chibang_01）就是这种：它是长在背上的，不可能自己转头")]
-    public string[] 朝向始终跟玩家的坐骑 = { "mount_chibang_01" };
+    [Tooltip("这些坐骑**朝向时刻跟玩家、永远待在背后/身周**，不参与「行进时朝移动方向」那套。\n" +
+             "· 灵翅 mount_chibang_01：长在背上的翅膀，不可能自己转头\n" +
+             "· 上古神龙 mount_shenlong_01：用户 2026-09-23 定「和翅膀类似，是相对角色的位置卡死的，\n" +
+             "  其实更类似一个环身的特效」—— 它是绕着角色转的特效，位置和朝向都锁死在角色身上")]
+    public string[] 朝向始终跟玩家的坐骑 = { "mount_chibang_01", "mount_shenlong_01" };
 
     [Tooltip("坐骑转向速度（度/秒）。停步后转回玩家朝向、以及朝移动方向转，都走这个速度")]
     public float 坐骑转向速度 = 240f;
@@ -315,7 +353,9 @@ public class MountRider : MonoBehaviour
         出生已开播 = false;
         保底特效已放 = false;
         已播动作名 = null;              // 换了坐骑要重新播一次
-        无出生动画 = !有出生动画();     // 没有 Birth 的坐骑 → 走「粒子 + 从小变大」保底
+        出生动作时长 = 0f;              // 换坐骑要重新量
+        消失动作时长 = 0f;
+        无出生动画 = !有出生动画();     // 没有出生动作的坐骑 → 走「粒子 + 从小变大」保底
 
         锁住御风();
         角色目标高度 = 起始高度 + 骑乘高度;
@@ -333,8 +373,10 @@ public class MountRider : MonoBehaviour
 
     float 起始高度;
     bool 出生已开播;
-    bool 无出生动画;          // 这只坐骑没有 Birth 动作（除碧水兽外其余 7 只都没有）→ 走保底（粒子 + 缩放）
+    bool 无出生动画;          // 这只坐骑的动作配置里没有出生动作（或控制器里没有）→ 走保底（粒子 + 缩放）
     bool 保底特效已放;
+    float 出生动作时长;       // 0 = 还没量到（量法：片段长度 / 出生速度）
+    float 消失动作时长;       // 0 = 还没量到（量法：片段长度 / 消失速度）
 
     /// <summary>播坐骑动作。NpcAnimator 没就绪时返回 false，调用方可以重试</summary>
     bool 播坐骑动作(string 名, bool 循环)
@@ -347,12 +389,52 @@ public class MountRider : MonoBehaviour
         return 坐骑动画.PlayAction(名, 循环);
     }
 
-    /// <summary>这只坐骑有没有 Birth 动作</summary>
+    /// <summary>这只坐骑有没有出生动画（= 它那条动作配置里填了出生动作，且控制器里真有）</summary>
     bool 有出生动画()
     {
         if (坐骑动画 == null) return false;
-        var 表 = 坐骑动画.AvailableActions;
-        return 表 != null && System.Array.IndexOf(表, "Birth") >= 0;
+        return 有动作(坐骑动画, 取动作().出生动作);
+    }
+
+    /// <summary>取这只坐骑那条动作配置。缺了就按标准名字全 1 倍速兜底（并报一次 warning）</summary>
+    坐骑动作 取动作()
+    {
+        string id = 坐骑定义 != null ? 坐骑定义.坐骑id : null;
+        if (!string.IsNullOrEmpty(id) && 坐骑动作表 != null)
+            foreach (var a in 坐骑动作表)
+                if (a != null && a.坐骑id == id) return a;
+
+        if (已报缺失动作的坐骑id != id)
+        {
+            已报缺失动作的坐骑id = id;
+            Debug.LogWarning("[坐骑] 坐骑动作表 里没有「"
+                + (坐骑定义 != null ? 坐骑定义.坐骑名称 + "（" + id + "）" : "未知坐骑")
+                + "」这一条，按 Idle/Run/Birth/Die 全 1 倍速兜底", this);
+        }
+        return 兜底动作;
+    }
+
+    string 已报缺失动作的坐骑id;
+
+    static readonly 坐骑动作 兜底动作 = new 坐骑动作 { 坐骑id = "(兜底)" };
+
+    /// <summary>设坐骑的播放速度。同一动作兼多阶段时，阶段之间的区别全靠它。</summary>
+    void 设动作速度(float 速度)
+    {
+        if (坐骑实例 == null) return;
+        var an = 坐骑实例.GetComponentInChildren<Animator>();
+        if (an != null) an.speed = 速度 > 0.0001f ? 速度 : 1f;
+    }
+
+    /// <summary>
+    /// 量「这个动作在这个速度下要播多久」= 片段长度 / 速度。
+    /// 取动作长度 是按 **clip 名** 查的，查不到返回 0 → 调用方用配置的兜底时长。
+    /// </summary>
+    float 取动作时长(string 动作名, float 速度)
+    {
+        if (坐骑动画 == null || string.IsNullOrEmpty(动作名)) return 0f;
+        float L = 坐骑动画.取动作长度(动作名);
+        return L > 0.01f ? L / Mathf.Max(0.0001f, 速度) : 0f;
     }
 
     /// <summary>已经播上的动作名（用来判断"这一帧还需不需要重播"）</summary>
@@ -366,18 +448,28 @@ public class MountRider : MonoBehaviour
         return 表 != null && System.Array.IndexOf(表, 名) >= 0;
     }
 
-    /// <summary>播动作，主名不行就依次试备用名（跑动动作的命名在不同坐骑里不统一）</summary>
-    bool 播坐骑动作带备用(string 主名, bool 循环)
+    /// <summary>
+    /// 播动作，主名不行就依次试备用名，**返回真正播上的那个名字**（要拿它去查片段长度）。
+    /// 备用的存在意义：不同美术给的控制器里同一个概念叫法不统一
+    ///（碧水兽的跑动状态就叫 FightRun 而不是 Run）。
+    /// </summary>
+    string 播坐骑动作取名(string 主名, bool 循环, string[] 备用)
     {
-        if (播坐骑动作(主名, 循环)) return true;
-        foreach (var 备 in 跑动动作备用)
-            if (!string.IsNullOrEmpty(备) && 备 != 主名 && 播坐骑动作(备, 循环)) return true;
-        return false;
+        if (播坐骑动作(主名, 循环)) return 主名;
+        if (备用 != null)
+            foreach (var 备 in 备用)
+                if (!string.IsNullOrEmpty(备) && 备 != 主名 && 播坐骑动作(备, 循环)) return 备;
+        return null;
     }
+
+    bool 播坐骑动作带备用(string 主名, bool 循环, string[] 备用)
+        => 播坐骑动作取名(主名, 循环, 备用) != null;
 
     void 更新上坐骑()
     {
         过渡计时 += Time.deltaTime;
+
+        var 动 = 取动作();
 
         // 出生动作等到 NpcAnimator 就绪再播（Instantiate 当帧它是没就绪的）
         if (!出生已开播)
@@ -393,8 +485,17 @@ public class MountRider : MonoBehaviour
                                           出生保底特效半径, 出生保底特效颜色);
                 }
             }
-            else 出生已开播 = 播坐骑动作("Birth", false);
+            else if (播坐骑动作(动.出生动作, false))
+            {
+                出生已开播 = true;
+                // 时长按「片段长度 / 速度」算，这样 birth 提速到 1.7 倍时整套过渡也跟着变短
+                出生动作时长 = 取动作时长(动.出生动作, 动.出生速度);
+            }
         }
+
+        // ★ 出生阶段的速度：一个动作兼多阶段时，阶段之间的区别**全靠速度**
+        //（上古神龙：同一个环绕飞行，birth 用 1.7 倍、idle 用 0.5 倍）
+        if (!无出生动画 && 出生已开播) 设动作速度(动.出生速度);
 
         // 出生期间坐骑摆在哪：
         //   · **有 Birth 动画**（碧水兽）→ 钉在**最终骑乘高度**
@@ -440,8 +541,9 @@ public class MountRider : MonoBehaviour
         }
     }
 
-    /// <summary>上坐骑总时长：有 Birth 就用它的时长，没有就用保底时长</summary>
-    float 上坐骑总时长 => Mathf.Max(玩家升空时长, 无出生动画 ? 出生保底时长 : 坐骑出生时长);
+    /// <summary>上坐骑总时长：有出生动作就用它的时长（片段长/速度），没有就用保底时长</summary>
+    float 上坐骑总时长 => Mathf.Max(玩家升空时长,
+        无出生动画 ? 出生保底时长 : (出生动作时长 > 0.01f ? 出生动作时长 : 坐骑出生时长));
 
     /// <summary>这只坐骑实际用的缩放（来自它自己那条摆位）</summary>
     float 实用缩放()
@@ -486,8 +588,14 @@ public class MountRider : MonoBehaviour
         // 只在切换帧试一次的话，那一次失败就**永远不播**了 ——
         // 用户 2026-09-23 报的「翅膀没挂上 idle 和 run 的动画」就是这个原因
         //（NpcAnimator 要等 Start 才「已就绪」，外面也可能有时序问题）。
-        string 想要 = 该行进 ? 跑动动作 : "Idle";
-        if (已播动作名 != 想要 && 播坐骑动作带备用(想要, true)) 已播动作名 = 想要;
+        //
+        // ★★ 速度**每帧都要重设**，不能只在换动作时设一次：
+        // 上古神龙的待机和跑动是**同一个动作**（CINEMA_4D___），换阶段时动作名没变，
+        // "只在名字变了才重播"的判断会漏掉，速度就永远停在 idle 的 0.5 倍 ✗
+        var 动 = 取动作();
+        string 想要 = 该行进 ? 动.跑动动作 : 动.待机动作;
+        if (已播动作名 != 想要 && 播坐骑动作带备用(想要, true, 跑动动作备用)) 已播动作名 = 想要;
+        设动作速度(该行进 ? 动.跑动速度 : 动.待机速度);
 
         摆坐骑();
     }
@@ -498,17 +606,28 @@ public class MountRider : MonoBehaviour
     {
         过渡计时 = 0f;
         起始高度 = 角色目标高度 - 骑乘高度;
+
+        // ★ 下坐骑播的是「死/消散」，**不是 LeveUp**（用户 2026-09-23 明确纠正：LeveUp 是升级）。
+        //   碧水兽控制器里这个状态的字面名是 `Die`，所以主名 Die、备用里留着 dead/LeveUp。
+        //   时长按「片段长度 / 消失速度」算；量不到就退回配置的 坐骑消散时长。
+        var 动 = 取动作();
+        消失动作时长 = 0f;
+        string 播上的 = 播坐骑动作取名(动.消失动作, false, 消失动作备用);
+        if (!string.IsNullOrEmpty(播上的))
+        {
+            设动作速度(动.消失速度);
+            消失动作时长 = 取动作时长(播上的, 动.消失速度);
+        }
+
         落地触发时刻 = Mathf.Max(0f, 下坐骑总时长 - 玩家落地时长);
         落地已触发 = false;
 
-        // ★ 先问「有没有这个动作」再播：直接 PlayAction 会在缺动作时每条日志一条 warning
-        //   （灵翅只有 Idle/Run，下坐骑必然刷一条「没有动作 LeveUp」）
-        if (坐骑动画 != null && 有动作(坐骑动画, "LeveUp")) 坐骑动画.PlayAction("LeveUp", false);
         if (动画 != null) 动画.设置外部御风(true, false);
 
         切到(骑乘状态.下坐骑中);
-        if (打印日志) Debug.Log("[坐骑] 下坐骑：消散 " + 坐骑消散时长 + "s ／ 玩家落地 "
-            + 玩家落地时长 + "s（落地在 " + 落地触发时刻.ToString("F2") + "s 触发，同时收尾）", this);
+        if (打印日志) Debug.Log("[坐骑] 下坐骑：消散 " + 实际消散时长 + "s（动作「" + 播上的 + "」"
+            + 动.消失速度 + " 倍速）／ 玩家落地 " + 玩家落地时长 + "s（落地在 "
+            + 落地触发时刻.ToString("F2") + "s 触发，同时收尾）", this);
     }
 
     void 更新下坐骑()
@@ -529,10 +648,10 @@ public class MountRider : MonoBehaviour
 
         // 坐骑消散：动画播到一半开始散，同时整体淡出
         摆坐骑();
-        if (坐骑实例 != null && 坐骑消散时长 > 0.001f)
+        if (坐骑实例 != null && 实际消散时长 > 0.001f)
         {
-            float 进度 = Mathf.Clamp01(过渡计时 / 坐骑消散时长);
-            if (过渡计时 >= 坐骑消散时长 * 0.35f && !消散已放)
+            float 进度 = Mathf.Clamp01(过渡计时 / 实际消散时长);
+            if (过渡计时 >= 实际消散时长 * 0.35f && !消散已放)
             {
                 消散已放 = true;
                 var 中心 = 坐骑实例.transform.position + Vector3.up * 1.5f;
@@ -557,7 +676,9 @@ public class MountRider : MonoBehaviour
     }
 
     bool 消散已放;
-    float 下坐骑总时长 => Mathf.Max(玩家落地时长, 坐骑消散时长);
+    /// <summary>消散实际用多久：量到动作时长就用它（片段长/速度），否则用配置值</summary>
+    float 实际消散时长 => 消失动作时长 > 0.01f ? 消失动作时长 : 坐骑消散时长;
+    float 下坐骑总时长 => Mathf.Max(玩家落地时长, 实际消散时长);
 
     void 收掉坐骑(bool 也放消散)
     {
