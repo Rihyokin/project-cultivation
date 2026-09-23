@@ -105,6 +105,17 @@ public class MountRider : MonoBehaviour
     [Tooltip("坐骑相对角色的额外旋转（欧拉角）")]
     public Vector3 坐骑朝向 = Vector3.zero;
 
+    [Header("坐骑朝向（锁定 + 移动时）")]
+    [Tooltip("锁定管理器。留空则自动在本体找 NpcTargeting。\n" +
+             "用来判断「有没有锁定」—— 有锁定且行进中时，坐骑朝移动方向、玩家继续正面锁敌")]
+    public NpcTargeting 目标管理器;
+
+    [Tooltip("坐骑转向速度（度/秒）。停步后转回玩家朝向、以及朝移动方向转，都走这个速度")]
+    public float 坐骑转向速度 = 240f;
+
+    float 当前坐骑Yaw;
+    bool 坐骑Yaw已初始化;
+
     [Header("高度与移动")]
     [Tooltip("骑乘时角色根抬离地面的高度（米）。上坐骑就是升到这个高度")]
     public float 骑乘高度 = 5.64f;
@@ -441,13 +452,45 @@ public class MountRider : MonoBehaviour
     {
         if (坐骑实例 == null) return;
         var t = 坐骑实例.transform;
+
+        // ---- 位置：始终挂在玩家根上，用玩家朝向算偏移 ----
+        // 【为什么位置用玩家朝向、不用坐骑朝向】玩家必须始终坐在坐骑背上。
+        // 如果偏移跟着坐骑自身的 yaw 走，坐骑一转向玩家就会从背上滑到侧面去 ✗
         var 基准 = transform.position;
         基准.y = 角色Y;
         t.position = 基准 + transform.rotation * 坐骑相对偏移;
-        t.rotation = transform.rotation * Quaternion.Euler(坐骑朝向);
+
+        // ---- 朝向：和玩家**分开**算 ----
+        // 用户 2026-09-23 要的行为：
+        //   · 行进中 **且玩家有锁定** → 坐骑朝**移动方向**（玩家自己继续正面锁敌）
+        //   · 其他情况（没锁定 / 停下来）→ 坐骑跟**玩家朝向**
+        // 因为是 MoveTowardsAngle，"移动停止后坐骑再转回玩家朝向"是自然发生的 ✓
+        if (目标管理器 == null) 目标管理器 = GetComponent<NpcTargeting>();
+
+        // 换了一只坐骑就重新取一次初始朝向
+        if (上次摆位实例 != 坐骑实例) { 上次摆位实例 = 坐骑实例; 坐骑Yaw已初始化 = false; }
+
+        float 玩家Yaw = transform.eulerAngles.y;
+        if (!坐骑Yaw已初始化) { 当前坐骑Yaw = 玩家Yaw; 坐骑Yaw已初始化 = true; }
+
+        float 目标Yaw = 玩家Yaw;
+        bool 有锁定 = 目标管理器 != null && 目标管理器.LockedNpc != null;
+        var 移动方向 = 控制器 != null ? 控制器.MoveDirection : Vector3.zero;
+        移动方向.y = 0f;
+        if (行进中 && 有锁定 && 移动方向.sqrMagnitude > 0.0001f)
+            目标Yaw = Quaternion.LookRotation(移动方向.normalized, Vector3.up).eulerAngles.y;
+
+        当前坐骑Yaw = 坐骑转向速度 <= 0f
+            ? 目标Yaw
+            : Mathf.MoveTowardsAngle(当前坐骑Yaw, 目标Yaw, 坐骑转向速度 * Time.deltaTime);
+
+        t.rotation = Quaternion.Euler(0f, 当前坐骑Yaw, 0f) * Quaternion.Euler(坐骑朝向);
+
         if (坐骑实例.transform.localScale.x <= 0.0001f)   // 被消散缩到 0 后别复活
             坐骑实例.transform.localScale = Vector3.one * 坐骑缩放;
     }
+
+    GameObject 上次摆位实例;
 
     void 锁住御风()
     {
