@@ -84,12 +84,41 @@ public static class SceneRigSyncer
 
                     Vector3 原位置 = 有 ? 目标根[k].transform.position : Vector3.zero;
                     Quaternion 原旋转 = 有 ? 目标根[k].transform.rotation : Quaternion.identity;
+
+                    // ★ 主相机是"总是覆盖"的，但**各场景会自己调相机**（例如镇妖塔把滚轮抬高上限 ×1.5）。
+                    //   覆盖前先记下这些调参，覆盖后原样还回去 —— 否则每次同步都会把别人的调参冲掉 ✗
+                    float sMin = 0f, sMax = 0f, hMin = 0f, hMax = 0f, 格 = 0f;
+                    bool 有调参 = false;
+                    if (k == "Main Camera" && 有)
+                    {
+                        var 旧 = 目标根[k].GetComponent<TopDownCameraZoom>();
+                        if (旧 != null)
+                        {
+                            有调参 = true;
+                            sMin = 旧.softMin; sMax = 旧.softMax;
+                            hMin = 旧.hardMin; hMax = 旧.hardMax;
+                            格 = 旧.zoomPerNotch;
+                        }
+                    }
+
                     if (有) Object.DestroyImmediate(目标根[k]);
 
                     var 搬 = 源根[k];
                     EditorSceneManager.MoveGameObjectToScene(搬, 目标场景);
                     if (k == "Player" || k == "SpawnPoint") { 搬.transform.position = new Vector3(0f, 0f, 0f); }
                     if (有 && k != "Main Camera") { 搬.transform.position = 原位置; 搬.transform.rotation = 原旋转; }
+
+                    if (有调参)
+                    {
+                        var 新 = 搬.GetComponent<TopDownCameraZoom>();
+                        if (新 != null)
+                        {
+                            新.softMin = sMin; 新.softMax = sMax;
+                            新.hardMin = hMin; 新.hardMax = hMax;
+                            新.zoomPerNotch = 格;
+                            Debug.Log("[装配同步]   已保留本场景的滚轮调参：软 " + sMin + "~" + sMax + " 硬 " + hMin + "~" + hMax);
+                        }
+                    }
                 }
 
                 EditorSceneManager.CloseScene(临时, true);
