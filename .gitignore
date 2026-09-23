@@ -60,6 +60,8 @@ somenews/
 # 本地工具脚本（走代理推 GitHub 用的 node 脚本），不属于项目
 .dsh/_tools/
 .dsh/_scene_backup/
+# harness 的心跳文件，每几十秒就变一次，会把工作区一直弄脏
+.dsh/alive.txt
 
 # 打包出来准备上传的 zip
 _backup_zip/
