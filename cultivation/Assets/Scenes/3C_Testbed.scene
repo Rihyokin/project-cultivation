@@ -71291,6 +71291,38 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 0636c7ee0da310b479c825adb0cef3b7, type: 3}
   m_PrefabInstance: {fileID: 2037610584}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &2037859918
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 7
+  m_Component:
+  - component: {fileID: 2037859919}
+  m_Layer: 0
+  m_HasEditorInfo: 1
+  m_Name: "\u843D\u70B9_3ctestbedtosect1"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2037859919
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2037859918}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -7.96, y: 0.050000954, z: -14.48}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2038185313
 GameObject:
   m_ObjectHideFlags: 0
@@ -74780,7 +74812,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1194053274141876, guid: fab60cdb67eed3f4bb2d72dd90d3d3d0, type: 3}
       propertyPath: m_Name
-      value: Teleport
+      value: 3ctestbed to sect1
       objectReference: {fileID: 0}
     - target: {fileID: 4874136042147880, guid: fab60cdb67eed3f4bb2d72dd90d3d3d0, type: 3}
       propertyPath: m_LocalPosition.x
@@ -74866,11 +74898,11 @@ MonoBehaviour:
   "\u9009\u9879":
   - "\u540D\u79F0": "\u524D\u5F80 Sect"
     "\u573A\u666F": Sect
-    "\u843D\u70B9": "\u843D\u70B9_\u6765\u81EA3C"
+    "\u843D\u70B9": "\u843D\u70B9_sect1to3ctestbed"
     "\u6682\u672A\u5F00\u653E": 0
   "\u534A\u5F84": 1.8
   "\u51B7\u5374": 0.5
-  "\u6807\u9898": "\u662F\u5426\u524D\u5F80 Sect\uFF08\u6865\u4E0A\uFF09\uFF1F"
+  "\u6807\u9898": "\u524D\u5F80 Sect"
   "\u6253\u5370\u65E5\u5FD7": 0
 --- !u!1 &2143731175
 GameObject:
@@ -74972,3 +75004,4 @@ SceneRoots:
   - {fileID: 1431189821}
   - {fileID: 2140010827}
   - {fileID: 1940510160}
+  - {fileID: 2037859919}
