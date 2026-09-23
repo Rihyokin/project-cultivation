@@ -106,6 +106,17 @@ public class MountRider : MonoBehaviour
              "这里把 dead / LeveUp 都留着兜底 —— 换控制器时不用改代码")]
     public string[] 消失动作备用 = { "dead", "Dead", "LeveUp" };
 
+    /// <summary>坐骑朝向怎么跟角色走。三选一，**每只坐骑自己一条**。</summary>
+    public enum 朝向跟随方式
+    {
+        [Tooltip("默认：行进中且有锁定时朝移动方向，停下再转回角色朝向")]
+        分离 = 0,
+        [Tooltip("直接锁死：朝向**每帧直接等于**角色朝向，完全不插值（翅膀这种长在背上的）")]
+        硬跟玩家 = 1,
+        [Tooltip("平滑跟：朝向**缓慢插值**追上角色朝向（环身特效这种慢慢转过来的）")]
+        平滑跟玩家 = 2,
+    }
+
     /// <summary>单只坐骑的摆位。**每只坐骑一条**，不再有全局值可退。</summary>
     [System.Serializable]
     public class 坐骑摆位
@@ -118,6 +129,11 @@ public class MountRider : MonoBehaviour
         public Vector3 朝向 = Vector3.zero;
         [Tooltip("这只坐骑的缩放（各只模型大小不同，必须一只一只给）")]
         public float 缩放 = 3.8762f;
+        [Tooltip("朝向怎么跟角色走。见 朝向跟随方式 的三个选项")]
+        public 朝向跟随方式 朝向跟随 = 朝向跟随方式.分离;
+        [Tooltip("「平滑跟玩家」时的转向速度（度/秒）。**越小越慢越飘**。\n" +
+                 "参考：默认的 坐骑转向速度 是 240，上古神龙这种环身特效建议 30~60")]
+        public float 跟随速度 = 45f;
     }
 
     [Tooltip("★ 每只坐骑的摆位，**一只一条，缺了会报 warning**。\n" +
@@ -162,14 +178,10 @@ public class MountRider : MonoBehaviour
              "缺了不会崩，会按 Idle/Run/Birth/Die 全 1 倍速兜底")]
     public 坐骑动作[] 坐骑动作表 = new 坐骑动作[0];
 
-    [Header("个别坐骑的行为覆盖")]
-    [Tooltip("这些坐骑**朝向时刻跟玩家、永远待在背后/身周**，不参与「行进时朝移动方向」那套。\n" +
-             "· 灵翅 mount_chibang_01：长在背上的翅膀，不可能自己转头\n" +
-             "· 上古神龙 mount_shenlong_01：用户 2026-09-23 定「和翅膀类似，是相对角色的位置卡死的，\n" +
-             "  其实更类似一个环身的特效」—— 它是绕着角色转的特效，位置和朝向都锁死在角色身上")]
-    public string[] 朝向始终跟玩家的坐骑 = { "mount_chibang_01", "mount_shenlong_01" };
-
-    [Tooltip("坐骑转向速度（度/秒）。停步后转回玩家朝向、以及朝移动方向转，都走这个速度")]
+    [Header("坐骑朝向跟随")]
+    [Tooltip("「分离」模式下，坐骑转向有多快（度/秒）。\n" +
+             "停步后转回玩家朝向、以及行进中朝移动方向转，都走这个速度。\n" +
+             "★ 「硬跟玩家」与「平滑跟玩家」不用它 —— 那两种的配置在 坐骑摆位表 里（每只一条）")]
     public float 坐骑转向速度 = 240f;
 
     float 当前坐骑Yaw;
@@ -728,10 +740,11 @@ public class MountRider : MonoBehaviour
         t.position = 基准 + transform.rotation * 偏移;
 
         // ---- 朝向 ----
-        // 两种行为：
-        //   · 普通坐骑（§34.8）：行进中且有锁定 → 朝移动方向；否则跟玩家
-        //   · **长在身上的**（翅膀那种）→ **时刻跟玩家**，不参与上面那套
-        //     （翅膀是长在背上的，不可能自己转头；用户 2026-09-23 明确要求）
+        // 三种行为，**每只坐骑在 坐骑摆位表 里自己配**（朝向跟随）：
+        //   · 分离      = 普通坐骑：行进中且有锁定 → 朝移动方向；否则跟玩家
+        //   · 硬跟玩家  = 翅膀：每帧直接等于玩家朝向，**不插值**
+        //   · 平滑跟玩家 = 上古神龙这种环身特效：**缓慢插值**追玩家朝向
+        // 位置三种都一样：挂在玩家根上、用**玩家朝向**算偏移（硬锁）
         if (目标管理器 == null) 目标管理器 = GetComponent<NpcTargeting>();
 
         // 换了一只坐骑就重新取一次初始朝向
@@ -741,7 +754,7 @@ public class MountRider : MonoBehaviour
         if (!坐骑Yaw已初始化) { 当前坐骑Yaw = 玩家Yaw; 坐骑Yaw已初始化 = true; }
 
         float 目标Yaw = 玩家Yaw;
-        if (!朝向始终跟玩家)
+        if (位.朝向跟随 == 朝向跟随方式.分离)
         {
             bool 有锁定 = 目标管理器 != null && 目标管理器.LockedNpc != null;
             var 移动方向 = 控制器 != null ? 控制器.MoveDirection : Vector3.zero;
@@ -750,17 +763,29 @@ public class MountRider : MonoBehaviour
                 目标Yaw = Quaternion.LookRotation(移动方向.normalized, Vector3.up).eulerAngles.y;
         }
 
-        // 「长在身上」的坐骑（翅膀）**不插值** —— 直接卡死在玩家朝向上。
-        // 用户 2026-09-23：「应该是紧密的卡死在角色的后方的，而不是现在这样平滑的插值变化」
-        if (朝向始终跟玩家)
+        // 朝向的三种跟法（配置在 坐骑摆位表 里，每只坐骑自己一条）：
+        //   · 硬跟玩家  = 翅膀。**不插值**，直接卡死在玩家朝向上。
+        //     用户 2026-09-23：「应该是紧密的卡死在角色的后方的，而不是现在这样平滑的插值变化」
+        //   · 平滑跟玩家 = 上古神龙这种环身特效。**缓慢插值**追过去。
+        //     用户 2026-09-23：「让龙和翅膀也有点不一样，翅膀是直接锁死的，让龙就变成平滑缓慢的插值吧」
+        //   · 分离      = 普通坐骑。行进中朝移动方向，停下转回玩家朝向
+        switch (位.朝向跟随)
         {
-            当前坐骑Yaw = 玩家Yaw;
-        }
-        else
-        {
-            当前坐骑Yaw = 坐骑转向速度 <= 0f
-                ? 目标Yaw
-                : Mathf.MoveTowardsAngle(当前坐骑Yaw, 目标Yaw, 坐骑转向速度 * Time.deltaTime);
+            case 朝向跟随方式.硬跟玩家:
+                当前坐骑Yaw = 玩家Yaw;
+                break;
+
+            case 朝向跟随方式.平滑跟玩家:
+                当前坐骑Yaw = 位.跟随速度 <= 0f
+                    ? 玩家Yaw
+                    : Mathf.MoveTowardsAngle(当前坐骑Yaw, 玩家Yaw, 位.跟随速度 * Time.deltaTime);
+                break;
+
+            default:
+                当前坐骑Yaw = 坐骑转向速度 <= 0f
+                    ? 目标Yaw
+                    : Mathf.MoveTowardsAngle(当前坐骑Yaw, 目标Yaw, 坐骑转向速度 * Time.deltaTime);
+                break;
         }
 
         t.rotation = Quaternion.Euler(0f, 当前坐骑Yaw, 0f) * Quaternion.Euler(朝向);
@@ -800,10 +825,6 @@ public class MountRider : MonoBehaviour
         }
         return 兜底摆位;
     }
-
-    /// <summary>是不是「长在身上、朝向必须时刻跟玩家」的坐骑（翅膀）</summary>
-    bool 朝向始终跟玩家 => 坐骑定义 != null && 朝向始终跟玩家的坐骑 != null
-        && System.Array.IndexOf(朝向始终跟玩家的坐骑, 坐骑定义.坐骑id) >= 0;
 
     void 锁住御风()
     {

@@ -56710,38 +56710,56 @@ MonoBehaviour:
     "\u504F\u79FB": {x: 0, y: -1.005, z: 0.031}
     "\u671D\u5411": {x: 0, y: 0, z: 0}
     "\u7F29\u653E": 1
+    "\u671D\u5411\u8DDF\u968F": 1
+    "\u8DDF\u968F\u901F\u5EA6": 45
   - "\u5750\u9A91id": mount_langqi_01
     "\u504F\u79FB": {x: 0.29, y: -3.95, z: 0.24}
     "\u671D\u5411": {x: 0, y: 0, z: 0}
     "\u7F29\u653E": 3.8762
+    "\u671D\u5411\u8DDF\u968F": 0
+    "\u8DDF\u968F\u901F\u5EA6": 45
   - "\u5750\u9A91id": mount_luzuoqi_01
     "\u504F\u79FB": {x: 0.29, y: -3.95, z: 0.24}
     "\u671D\u5411": {x: 0, y: 0, z: 0}
     "\u7F29\u653E": 3.8762
+    "\u671D\u5411\u8DDF\u968F": 0
+    "\u8DDF\u968F\u901F\u5EA6": 45
   - "\u5750\u9A91id": mount_bishuishou_01
     "\u504F\u79FB": {x: 0.29, y: -3.95, z: 0.24}
     "\u671D\u5411": {x: 0, y: 0, z: 0}
     "\u7F29\u653E": 3.8762
+    "\u671D\u5411\u8DDF\u968F": 0
+    "\u8DDF\u968F\u901F\u5EA6": 45
   - "\u5750\u9A91id": mount_xiongmaozuoqi_01
     "\u504F\u79FB": {x: 0.29, y: -3.95, z: 0.24}
     "\u671D\u5411": {x: 0, y: 0, z: 0}
     "\u7F29\u653E": 3.8762
+    "\u671D\u5411\u8DDF\u968F": 0
+    "\u8DDF\u968F\u901F\u5EA6": 45
   - "\u5750\u9A91id": mount_zhanqi_01
     "\u504F\u79FB": {x: 0.29, y: -3.95, z: 0.24}
     "\u671D\u5411": {x: 0, y: 0, z: 0}
     "\u7F29\u653E": 3.8762
+    "\u671D\u5411\u8DDF\u968F": 0
+    "\u8DDF\u968F\u901F\u5EA6": 45
   - "\u5750\u9A91id": mount_qilingzuoqi_01
     "\u504F\u79FB": {x: 0.29, y: -3.95, z: 0.24}
     "\u671D\u5411": {x: 0, y: 0, z: 0}
     "\u7F29\u653E": 3.8762
+    "\u671D\u5411\u8DDF\u968F": 0
+    "\u8DDF\u968F\u901F\u5EA6": 45
   - "\u5750\u9A91id": mount_julong_01
     "\u504F\u79FB": {x: 0.29, y: -3.95, z: 0.24}
     "\u671D\u5411": {x: 0, y: 0, z: 0}
     "\u7F29\u653E": 3.8762
+    "\u671D\u5411\u8DDF\u968F": 0
+    "\u8DDF\u968F\u901F\u5EA6": 45
   - "\u5750\u9A91id": mount_shenlong_01
     "\u504F\u79FB": {x: 0.29, y: -3.95, z: 0.24}
     "\u671D\u5411": {x: 0, y: 0, z: 0}
     "\u7F29\u653E": 3.8762
+    "\u671D\u5411\u8DDF\u968F": 2
+    "\u8DDF\u968F\u901F\u5EA6": 45
   "\u5750\u9A91\u52A8\u4F5C\u8868":
   - "\u5750\u9A91id": mount_chibang_01
     "\u5F85\u673A\u52A8\u4F5C": Idle
@@ -56824,9 +56842,6 @@ MonoBehaviour:
     "\u51FA\u751F\u901F\u5EA6": 1.7
     "\u6D88\u5931\u52A8\u4F5C": CINEMA_4D___
     "\u6D88\u5931\u901F\u5EA6": 1.7
-  "\u671D\u5411\u59CB\u7EC8\u8DDF\u73A9\u5BB6\u7684\u5750\u9A91":
-  - mount_chibang_01
-  - mount_shenlong_01
   "\u5750\u9A91\u8F6C\u5411\u901F\u5EA6": 240
   "\u9A91\u4E58\u9AD8\u5EA6": 5.64
   "\u5750\u9A91\u79FB\u52A8\u901F\u5EA6": 9
