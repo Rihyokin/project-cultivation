@@ -29,10 +29,13 @@ public static class SceneRigSyncer
         "Player", "Main Camera", "EventSystem", "HudCanvas", "CharacterUI", "暂停菜单", "SpawnPoint",
     };
 
-    /// <summary>这几个根总是用源场景的覆盖。Player 也在这里：场景里若残留一个**空的** Player
-    /// 根物体（例如手删了角色预制体只删了子物体），"缺失才补"的规则会跳过它，
-    /// 结果留下空壳 ✗ —— 所以 Player 必须强制覆盖。</summary>
-    static readonly string[] 总是覆盖 = { "Player", "Main Camera" };
+    /// <summary>这几个根总是用源场景的覆盖。
+    /// · Player：场景里若残留一个**空的** Player 根物体（手删角色预制体只删了子物体），
+    ///   "缺失才补"会跳过它留下空壳 ✗
+    /// · Main Camera：必须带跟随脚本
+    /// · UI（HudCanvas / CharacterUI / EventSystem / 暂停菜单）：**必须整体覆盖** ——
+    ///   各场景里的旧版 UI 只要还在，就会挡住新 UI 同步（实测 Sect 一直是老 UI ✗）</summary>
+    static readonly string[] 总是覆盖 = { "Player", "Main Camera", "HudCanvas", "CharacterUI", "EventSystem", "暂停菜单" };
 
     [MenuItem("修仙/同步通用角色与UI到所有游玩场景")]
     public static void SyncMenu() => Sync();
