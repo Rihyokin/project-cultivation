@@ -17,7 +17,8 @@ public class PlayerCombatStats : MonoBehaviour, ICombatStats
              "这里填的值只是没有 PlayerCultivation 时的兜底。")]
     public GongFaDefinition 当前功法;
 
-    [Tooltip("当前功法等级。0 表示还没修出增益")]
+    [Tooltip("当前功法等级。**运行时 = 当前境界等级**（再按功法的「最高可修炼境界」封顶），\n" +
+             "这里填的值只在没有 PlayerCultivation 时才用。")]
     [Min(0)]
     public int 功法等级 = 0;
 
@@ -64,15 +65,35 @@ public class PlayerCombatStats : MonoBehaviour, ICombatStats
     void Update()
     {
         if (修炼 == null) 修炼 = GetComponent<PlayerCultivation>();
-        if (修炼 != null && 修炼.当前功法 != 当前功法) 同步功法();
+        if (修炼 != null && (修炼.当前功法 != 当前功法 || 期望功法等级 != 功法等级)) 同步功法();
     }
 
     /// <summary>
-    /// 把本组件的 <see cref="当前功法"/> 同步成 <see cref="PlayerCultivation"/> 正在修的那门，并重算属性。
+    /// 按当前境界推出来的**功法等级**：`= 境界等级`，再按功法的「最高可修炼境界」封顶。
+    ///
+    /// 【为什么是境界等级】`GongFaDefinition.难度等级` 的注释是「每提升一级境界所需的吐纳经验」，
+    /// `每级增益` 是「功法每升一级，玩家获得的属性增益」—— 也就是**境界每升一级 = 功法升一级**。
+    /// 以前 `功法等级` 是个纯手填字段（场景里填的 5），和境界完全脱钩：
+    /// 玩家明明「炼气第1层」，却一直按功法 5 级算增益 ✗
+    /// </summary>
+    int 期望功法等级
+    {
+        get
+        {
+            if (修炼 == null) return 功法等级;
+            int 境界 = Mathf.Max(0, 修炼.等级);
+            var g = 修炼.当前功法;
+            // 功法自己的上限（`最高可修炼境界`）；没有功法就不封顶
+            return g != null ? Mathf.Clamp(境界, 0, Mathf.Max(1, g.最高可修炼境界)) : 境界;
+        }
+    }
+
+    /// <summary>
+    /// 把本组件的 <see cref="当前功法"/> / <see cref="功法等级"/> 同步成修炼系统当前的状态，并重算属性。
     ///
     /// 【为什么必须有】转修 / 读档 改的是 <c>UIPanelData.当前功法</c>；
-    /// 而本组件的属性汇总用的是**自己这个 `当前功法` 字段**（还有 `功法等级`）。
-    /// 两边不同步的话就会出现：**界面上功法已经换了、实际战斗属性还在按旧功法算** ✗
+    /// 而本组件的属性汇总用的是**自己这两个字段**。
+    /// 两边不同步就会出现：**界面上功法已经换了、实际战斗属性还在按旧功法算** ✗
     ///
     /// 实测过：界面显示「青云剑诀」，属性却还在按 09-21 手填的「太虚炼气诀」算，
     /// 汇总攻击一直是 57 不动 —— 看起来就像"转修没生效"。
@@ -83,9 +104,11 @@ public class PlayerCombatStats : MonoBehaviour, ICombatStats
         if (修炼 == null) return;
 
         var g = 修炼.当前功法;
-        if (g == null || g == 当前功法) return;
+        int 级 = 期望功法等级;
+        if (g == 当前功法 && 级 == 功法等级) return;
 
         当前功法 = g;
+        功法等级 = 级;
         Recalculate();
     }
 
