@@ -300,6 +300,14 @@ public class MountRider : MonoBehaviour
         // 坐骑本来也不该挡住自己的骑手。
         foreach (var c in 坐骑实例.GetComponentsInChildren<Collider>(true)) c.enabled = false;
 
+        // ★★ 必须**删掉**旧版 Animation 组件（只 enabled=false 不够）★★
+        // 翅膀 prefab 根上同时挂着 Animator（Chibang 控制器）和旧版 Animation（2 个片段）。
+        // Unity 里 Animator 和 Animation 是**互斥**的：只要 Animation 组件**存在**，
+        // Mecanim 就不绑定 clip —— 实测 `GetCurrentAnimatorClipInfo(0).Length == 0`，
+        // 状态机的 normalizedTime 照常推进，但**一根骨骼都不动** ✗
+        // 只把 enabled 置 false 是没用的（试过），组件在就不行，必须销毁。
+        foreach (var a in 坐骑实例.GetComponentsInChildren<Animation>(true)) Destroy(a);
+
         坐骑动画 = 坐骑实例.GetComponentInChildren<NpcAnimator>();
         if (坐骑动画 == null)
             Debug.LogWarning("[坐骑]「" + m.坐骑名称 + "」上没有 NpcAnimator，播不了动作", this);
