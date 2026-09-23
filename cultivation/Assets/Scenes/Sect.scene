@@ -1733,38 +1733,6 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 1628952046}
   m_SourcePrefab: {fileID: 100100000, guid: 351b8f5c8cc99ab4588ccf28207ecb40, type: 3}
---- !u!1 &60949966
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 7
-  m_Component:
-  - component: {fileID: 60949967}
-  m_Layer: 0
-  m_HasEditorInfo: 1
-  m_Name: "\u843D\u70B9_sect1to3ctestbed"
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &60949967
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 60949966}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -18.23, y: 0.02799635, z: 27.54}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &63566894 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 100002, guid: fefd14bb1baef214a98c79508c3d73cb, type: 3}
@@ -14757,7 +14725,7 @@ MonoBehaviour:
   "\u9009\u9879":
   - "\u540D\u79F0": "\u524D\u5F80 3C_Testbed"
     "\u573A\u666F": 3C_Testbed
-    "\u843D\u70B9": "\u843D\u70B9_3ctestbedtosect1"
+    "\u843D\u70B9": 3ctestbed to sect1
     "\u6682\u672A\u5F00\u653E": 0
   "\u534A\u5F84": 1.8
   "\u51B7\u5374": 0.5
@@ -30589,9 +30557,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   "\u9009\u9879":
-  - "\u540D\u79F0": "\u8FDB\u5165\u9547\u5996\u5854"
+  - "\u540D\u79F0": "\u524D\u5F80 Demon-Suppressing Tower"
     "\u573A\u666F": Demon-Suppressing Tower
-    "\u843D\u70B9": "\u843D\u70B9_towertosect2"
+    "\u843D\u70B9": tower to sect2
     "\u6682\u672A\u5F00\u653E": 0
   "\u534A\u5F84": 1.8
   "\u51B7\u5374": 0.5
@@ -43072,38 +43040,6 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 4300008, guid: 40d35077084b46547bbe9436e2e6608c, type: 3}
---- !u!1 &1703371788
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 7
-  m_Component:
-  - component: {fileID: 1703371789}
-  m_Layer: 0
-  m_HasEditorInfo: 1
-  m_Name: "\u843D\u70B9_sect2totower"
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1703371789
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1703371788}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -88.33, y: 14.261919, z: 88.33}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1706318232
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -54427,5 +54363,3 @@ SceneRoots:
   - {fileID: 1186935251}
   - {fileID: 594805527}
   - {fileID: 538747441}
-  - {fileID: 1703371789}
-  - {fileID: 60949967}

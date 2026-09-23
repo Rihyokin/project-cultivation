@@ -36627,11 +36627,11 @@ MonoBehaviour:
   "\u9009\u9879":
   - "\u540D\u79F0": "\u8FDB\u5165\u4E0B\u4E00\u5C42"
     "\u573A\u666F": 
-    "\u843D\u70B9": 
+    "\u843D\u70B9": SpawnPoint
     "\u6682\u672A\u5F00\u653E": 1
   - "\u540D\u79F0": "\u51FA\u5854\uFF08\u56DE Sect\uFF09"
     "\u573A\u666F": Sect
-    "\u843D\u70B9": "\u843D\u70B9_sect2totower"
+    "\u843D\u70B9": sect2 to tower
     "\u6682\u672A\u5F00\u653E": 0
   "\u534A\u5F84": 1.8
   "\u51B7\u5374": 0.5
@@ -56033,38 +56033,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2031654478}
   m_CullTransparentMesh: 1
---- !u!1 &2037859918
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 7
-  m_Component:
-  - component: {fileID: 2037859919}
-  m_Layer: 0
-  m_HasEditorInfo: 1
-  m_Name: "\u843D\u70B9_towertosect2"
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &2037859919
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2037859918}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.3, y: 5.0800004, z: 5.84}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2038185313
 GameObject:
   m_ObjectHideFlags: 0
@@ -58902,4 +58870,3 @@ SceneRoots:
   - {fileID: 1786122618}
   - {fileID: 1380260650}
   - {fileID: 594805527}
-  - {fileID: 2037859919}

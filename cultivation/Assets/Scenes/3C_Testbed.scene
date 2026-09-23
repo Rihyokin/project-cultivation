@@ -71259,38 +71259,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 0636c7ee0da310b479c825adb0cef3b7, type: 3}
   m_PrefabInstance: {fileID: 2037610584}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &2037859918
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 7
-  m_Component:
-  - component: {fileID: 2037859919}
-  m_Layer: 0
-  m_HasEditorInfo: 1
-  m_Name: "\u843D\u70B9_3ctestbedtosect1"
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &2037859919
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2037859918}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -7.96, y: 0.050000954, z: -14.48}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2038185313
 GameObject:
   m_ObjectHideFlags: 0
@@ -74866,7 +74834,7 @@ MonoBehaviour:
   "\u9009\u9879":
   - "\u540D\u79F0": "\u524D\u5F80 Sect"
     "\u573A\u666F": Sect
-    "\u843D\u70B9": "\u843D\u70B9_sect1to3ctestbed"
+    "\u843D\u70B9": sect1 to 3c
     "\u6682\u672A\u5F00\u653E": 0
   "\u534A\u5F84": 1.8
   "\u51B7\u5374": 0.5
@@ -74971,4 +74939,3 @@ SceneRoots:
   - {fileID: 1059389728}
   - {fileID: 1431189821}
   - {fileID: 2140010827}
-  - {fileID: 2037859919}
