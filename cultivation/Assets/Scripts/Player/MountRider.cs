@@ -253,7 +253,11 @@ public class MountRider : MonoBehaviour
 
         // ★ 出生动画就在骑乘位播放：applyRootMotion=False，所以播完它自然已经在待机位置上
         摆坐骑();
-        if (坐骑动画 != null) 坐骑动画.PlayAction("Birth", false);
+        // 【不能在这里直接播】NpcAnimator 要等 Start 才「已就绪」，而 Instantiate 当帧 Start 还没跑，
+        // PlayAction 会返回 false —— 表现就是**碧水兽卡在默认姿势不动**
+        //（用户 2026-09-23 报的「birth 动画卡住了」就是这个）。
+        // 改成每帧重试，成功为止，见 更新上坐骑()。
+        出生已开播 = false;
 
         锁住御风();
         角色目标高度 = 起始高度 + 骑乘高度;
@@ -270,10 +274,22 @@ public class MountRider : MonoBehaviour
     }
 
     float 起始高度;
+    bool 出生已开播;
+
+    /// <summary>播坐骑动作。NpcAnimator 没就绪时返回 false，调用方可以重试</summary>
+    bool 播坐骑动作(string 名, bool 循环)
+    {
+        if (坐骑动画 == null) return false;
+        return 坐骑动画.PlayAction(名, 循环);
+    }
 
     void 更新上坐骑()
     {
         过渡计时 += Time.deltaTime;
+
+        // 出生动作等到 NpcAnimator 就绪再播（Instantiate 当帧它是没就绪的）
+        if (!出生已开播)
+            出生已开播 = 播坐骑动作("Birth", false);
 
         // 玩家：0 → 升空时长 之间升到骑乘高度；升空动画放完就转御风_Idle
         float k = 玩家升空时长 > 0.001f ? Mathf.Clamp01(过渡计时 / 玩家升空时长) : 1f;

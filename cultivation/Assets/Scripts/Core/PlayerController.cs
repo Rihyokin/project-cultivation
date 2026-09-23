@@ -96,8 +96,11 @@ public class PlayerController : MonoBehaviour
         bool 骑乘中 = 坐骑 != null && 坐骑.骑乘中;
 
         // 水平速度：带加/减速，避免瞬间起停的僵硬感
-        float targetSpeed = 骑乘中 ? 坐骑.骑乘速度
-                         : (飞行中 ? 御风.飞行速度 : (running ? runSpeed : walkSpeed));
+        // 上/下坐骑的过渡期间锁住移动（用户要求：上坐骑时要静止）
+        bool 坐骑过渡 = 坐骑 != null && 坐骑.过渡中;
+        float targetSpeed = 坐骑过渡 ? 0f
+                         : (骑乘中 ? 坐骑.骑乘速度
+                         : (飞行中 ? 御风.飞行速度 : (running ? runSpeed : walkSpeed)));
         Vector3 targetVelocity = desired * targetSpeed;
         float rate = desired.sqrMagnitude > 0.0001f ? acceleration : deceleration;
         horizontalVelocity = Vector3.MoveTowards(horizontalVelocity, targetVelocity, rate * Time.deltaTime);
