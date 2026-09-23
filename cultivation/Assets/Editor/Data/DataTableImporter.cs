@@ -458,6 +458,26 @@ public static class DataTableImporter
         data.已获得真灵.Sort(UIPanelData.比真灵);
         data.EnsureLists();      // 站位列表补成 9 格
 
+        // ---- 玩家身上的 PlayerCultivation（修炼系统）也要接 ----
+        // 【为什么要管它】它和 UIPanelData 一样，装的是**场景里的引用**：
+        // 场景被重建 / 玩家组件被重新 AddComponent 之后，面板数据、境界表、功法表
+        // 会**全部留空**。表现是修炼小屋界面上「当前境界」显示成「—」、
+        // 「修炼一次」没反应 —— 而且不报任何错，很难查。
+        // 放在这里 = 跑一次「从配置表生成资产」就能自愈。
+        var 玩家对象 = GameObject.Find("Player");
+        var 修炼 = 玩家对象 != null ? 玩家对象.GetComponent<PlayerCultivation>() : null;
+        if (修炼 == null) 修炼 = UnityEngine.Object.FindObjectOfType<PlayerCultivation>();
+        if (修炼 != null)
+        {
+            修炼.面板数据 = data;
+            修炼.境界表 = LoadAll<RealmDefinition>().ToArray();
+            修炼.功法表 = LoadAll<GongFaDefinition>().ToArray();
+            EditorUtility.SetDirty(修炼);
+            Debug.Log("[DataTableImporter] 已接 PlayerCultivation：境界表 "
+                      + 修炼.境界表.Length + " 条、功法表 " + 修炼.功法表.Length + " 条、面板数据="
+                      + (修炼.面板数据 != null ? 修炼.面板数据.name : "null"));
+        }
+
         if (data.玩家属性 == null)
         {
             var stats = AssetDatabase.LoadAssetAtPath<PlayerStatsDefinition>("Assets/DemoData/PlayerStats_Demo.asset");
