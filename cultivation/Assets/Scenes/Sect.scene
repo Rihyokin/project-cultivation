@@ -48464,26 +48464,26 @@ MonoBehaviour:
   m_GameObject: {fileID: 1786122615}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 12324cee864e06741b05cb7886f51233, type: 3}
+  m_Script: {fileID: 11500000, guid: b86356513ed535649ad16ce263ef4522, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   "\u6444\u50CF\u673A": {fileID: 1786122617}
   "\u89D2\u8272": {fileID: 1805764444}
-  "\u7784\u51C6\u9AD8\u5EA6": 1
-  "\u534A\u5F84": 2.2
-  "\u7FBD\u5316\u5BBD\u5EA6": 1.4
-  "\u900F\u89C6\u5F3A\u5EA6": 0.7
-  "\u6DE1\u5165\u901F\u5EA6": 6
-  "\u8D77\u70B9\u7559\u767D": 0.05
-  "\u7EC8\u70B9\u7559\u767D": 0.92
-  "\u4F5C\u7528\u6839": []
-  "\u6839\u540D\u5173\u952E\u5B57":
-  - Building
-  - building
-  - Tree
-  - tree
-  - stone
-  "\u6253\u5370\u65E5\u5FD7": 1
+  "\u89D2\u8272\u9AD8\u5EA6": 1.8
+  "\u63CF\u8FB9\u989C\u8272": {r: 1, g: 0.82, b: 0.25, a: 1}
+  "\u63CF\u8FB9\u5BBD\u5EA6": 0.08
+  "\u526A\u5F71\u989C\u8272": {r: 1, g: 0.82, b: 0.25, a: 0.35}
+  "\u6DE1\u5165\u901F\u5EA6": 7
+  "\u91C7\u6837\u9AD8\u5EA6":
+  - 0.15
+  - 0.5
+  - 0.85
+  "\u68C0\u6D4B\u5C42":
+    serializedVersion: 2
+    m_Bits: 4294967295
+  "\u68C0\u6D4B\u95F4\u9694\u5E27": 1
+  "\u8C03\u8BD5_\u5F3A\u5236\u663E\u793A": 0
+  "\u6253\u5370\u65E5\u5FD7": 0
   "\u542F\u7528": 1
 --- !u!1001 &1791501383
 PrefabInstance:
