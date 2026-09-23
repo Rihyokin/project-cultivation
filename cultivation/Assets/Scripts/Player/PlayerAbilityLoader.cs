@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
@@ -102,52 +102,75 @@ public class PlayerAbilityLoader : MonoBehaviour
             }
         }
 
-        // ---- 卸载不再需要的 ----
-        var 待卸载 = new List<string>();
-        foreach (var kv in 已装载)
-            if (!需要.Contains(kv.Key)) 待卸载.Add(kv.Key);
-
-        // 分两遍卸：组件之间可能有 RequireComponent 依赖，被依赖的要后卸。
-        // 第一遍卸得掉的先卸，卸不掉的留到第二遍 —— 这样不用手工维护装卸顺序。
-        var 剩余 = new List<string>(待卸载);
-        for (int pass = 0; pass < 2 && 剩余.Count > 0; pass++)
+        // ---- 该开的开、该关的关 ----
+        //
+        // 【为什么是「启用/停用」而不是「新建/销毁」】
+        // 以前是 需要 → AddComponent、不需要 → Destroy。问题是普攻组件身上有**很贵的
+        // Inspector 配置**（`剑模型资源`、模型朝向补偿、悬浮偏移、绕行/瞄准参数…）。
+        //   · 手工挂在玩家身上的那份，加进来时 `GetComponent(type) != null` 就跳过，
+        //     于是它**永远不会被卸载** → 换功法之后新旧两套普攻同时生效 ✗
+        //   · 真用 AddComponent 新建的话，所有配置都是默认值 → 剑直接废掉 ✗
+        // 所以改成：**只在「本表里登记过的能力类名」范围内切换 enabled**，
+        // 谁挂的、配了什么一概不动。
+        foreach (var 名 in 表里登记过的能力类名())
         {
-            var 下一轮 = new List<string>();
-            foreach (var name in 剩余)
-            {
-                var c = 已装载[name];
-                if (c == null) { 已装载.Remove(name); continue; }
+            bool 要 = 需要.Contains(名);
+            var 现有 = 取组件(名);      // Behaviour：要能读写 enabled
 
-                // 御风组件卸载前先落地，免得角色卡在半空
-                var yf = c as YufengFlight;
+            if (要)
+            {
+                if (现有 == null)
+                {
+                    var type = FindType(名);
+                    if (type == null) { Debug.LogWarning("[PlayerAbilityLoader] 找不到组件类型 " + 名, this); continue; }
+                    现有 = gameObject.AddComponent(type) as Behaviour;
+                    已装载[名] = 现有;
+                    if (打印装卸日志)
+                        Debug.Log("[PlayerAbilityLoader] 新建并启用 " + 名
+                                  + "（★ 玩家身上没有这个组件，新建出来的是**默认配置**，记得手动配一遍）", this);
+                }
+                else if (!现有.enabled)
+                {
+                    现有.enabled = true;
+                    if (打印装卸日志) Debug.Log("[PlayerAbilityLoader] 启用 " + 名, this);
+                }
+            }
+            else if (现有 != null && 现有.enabled)
+            {
+                // 御风停用前先落地，免得角色卡在半空
+                var yf = 现有 as YufengFlight;
                 if (yf != null) yf.强制落地();
 
-                if (TryDestroy(c))
-                {
-                    已装载.Remove(name);
-                    if (打印装卸日志) Debug.Log("[PlayerAbilityLoader] 卸载 " + name, this);
-                }
-                else 下一轮.Add(name);
+                现有.enabled = false;          // ★ 停用而不是销毁：配置全留着
+                if (打印装卸日志) Debug.Log("[PlayerAbilityLoader] 停用 " + 名, this);
             }
-            剩余 = 下一轮;
         }
-        foreach (var name in 剩余)
-            Debug.LogWarning("[PlayerAbilityLoader] 卸不掉 " + name
-                             + "：可能有别的组件用 RequireComponent 依赖它，检查一下依赖声明", this);
 
-        // ---- 装载还缺的 ----
-        foreach (var name in 需要)
+        // 清掉已经被别处销毁掉的记录
+        var 失效 = new List<string>();
+        foreach (var kv in 已装载) if (kv.Value == null) 失效.Add(kv.Key);
+        foreach (var k in 失效) 已装载.Remove(k);
+    }
+
+    /// <summary>配置表里登记过的**所有**能力组件类名（普攻方法表 + 被动神通表）</summary>
+    HashSet<string> 表里登记过的能力类名()
+    {
+        var 名 = new HashSet<string>();
+        foreach (var b in 普攻方法表)
+            if (b != null && !string.IsNullOrEmpty(b.组件类名)) 名.Add(b.组件类名);
+        foreach (var b in 被动神通表)
         {
-            if (已装载.ContainsKey(name)) continue;
-
-            var type = FindType(name);
-            if (type == null) { Debug.LogWarning("[PlayerAbilityLoader] 找不到组件类型 " + name, this); continue; }
-            if (GetComponent(type) != null) continue;      // 已经手工挂着了，不重复装
-
-            var c = gameObject.AddComponent(type);
-            已装载[name] = c;
-            if (打印装卸日志) Debug.Log("[PlayerAbilityLoader] 装载 " + name, this);
+            if (b == null || b.组件类名 == null) continue;
+            foreach (var n in b.组件类名) if (!string.IsNullOrEmpty(n)) 名.Add(n);
         }
+        return 名;
+    }
+
+    /// <summary>按类名找玩家身上已有的组件（找不到类型返回 null）</summary>
+    Behaviour 取组件(string 类名)
+    {
+        var t = FindType(类名);
+        return t != null ? GetComponent(t) as Behaviour : null;
     }
 
     /// <summary>尝试销毁组件。有别的组件 RequireComponent 依赖它时 Unity 会拒绝，这里返回 false。</summary>

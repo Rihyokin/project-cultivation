@@ -12,7 +12,9 @@ public class PlayerCombatStats : MonoBehaviour, ICombatStats
     [Tooltip("玩家基本属性定义")]
     public PlayerStatsDefinition 玩家属性;
 
-    [Tooltip("当前修炼的功法，其「每级增益」会按等级累加")]
+    [Tooltip("当前修炼的功法，其「每级增益」会按等级累加。\n\n" +
+             "【重要】运行时**以 PlayerCultivation 正在修的那门为准、每帧自动跟随**；\n" +
+             "这里填的值只是没有 PlayerCultivation 时的兜底。")]
     public GongFaDefinition 当前功法;
 
     [Tooltip("当前功法等级。0 表示还没修出增益")]
@@ -36,6 +38,7 @@ public class PlayerCombatStats : MonoBehaviour, ICombatStats
     public float 调试吐纳速度 = 2.4f;
 
     AttributeSet 汇总;
+    PlayerCultivation 修炼;
 
     /// <summary>当前汇总后的属性表（只读）</summary>
     public AttributeSet 当前属性
@@ -49,6 +52,40 @@ public class PlayerCombatStats : MonoBehaviour, ICombatStats
 
     void Awake()
     {
+        同步功法();          // 先同步再算，免得第一帧用的还是 Inspector 里那个旧值
+        Recalculate();
+    }
+
+    /// <summary>
+    /// 【为什么要每帧看一次】换功法的路径不止一条 —— 修炼小屋的「转修功法」、读档、
+    /// 以后可能还有剧情/调试。谁都有可能忘了通知这里。
+    /// 一次引用比较而已，开销可以忽略，但能彻底消灭「界面换了、属性没换」这类静默不一致。
+    /// </summary>
+    void Update()
+    {
+        if (修炼 == null) 修炼 = GetComponent<PlayerCultivation>();
+        if (修炼 != null && 修炼.当前功法 != 当前功法) 同步功法();
+    }
+
+    /// <summary>
+    /// 把本组件的 <see cref="当前功法"/> 同步成 <see cref="PlayerCultivation"/> 正在修的那门，并重算属性。
+    ///
+    /// 【为什么必须有】转修 / 读档 改的是 <c>UIPanelData.当前功法</c>；
+    /// 而本组件的属性汇总用的是**自己这个 `当前功法` 字段**（还有 `功法等级`）。
+    /// 两边不同步的话就会出现：**界面上功法已经换了、实际战斗属性还在按旧功法算** ✗
+    ///
+    /// 实测过：界面显示「青云剑诀」，属性却还在按 09-21 手填的「太虚炼气诀」算，
+    /// 汇总攻击一直是 57 不动 —— 看起来就像"转修没生效"。
+    /// </summary>
+    public void 同步功法()
+    {
+        if (修炼 == null) 修炼 = GetComponent<PlayerCultivation>();
+        if (修炼 == null) return;
+
+        var g = 修炼.当前功法;
+        if (g == null || g == 当前功法) return;
+
+        当前功法 = g;
         Recalculate();
     }
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -206,15 +206,27 @@ public class BasicSword01 : MonoBehaviour
     void OnDestroy()
     {
         if (目标管理器 != null) 目标管理器.LockChanged -= 处理锁定变化;
+        收起飞剑();
+    }
 
-        // 飞剑是运行时生成的【根节点对象】，组件被卸载（换功法）时得一起收掉，
-        // 否则它会作为孤儿留在场景里。
-        if (剑体 != null)
-        {
-            var go = 剑体.gameObject;
-            剑体 = null;
-            if (Application.isPlaying) Destroy(go); else DestroyImmediate(go);
-        }
+    /// <summary>
+    /// **被停用也要收掉飞剑。**
+    ///
+    /// 【为什么需要】换功法时 <see cref="PlayerAbilityLoader"/> 是把组件 `enabled = false`
+    /// （不是销毁 —— 销毁会丢掉 Inspector 里那套模型/参数配置）。
+    /// 如果只在 OnDestroy 里收剑，停用之后那把剑会**冻在原地继续挂着** ✗
+    ///
+    /// 剑体是**懒创建**的（<c>更新悬浮</c> 里 `if (剑体 == null) 确保飞剑存在()`），
+    /// 所以停用收掉、以后再启用时会自动重新生成 ✓
+    /// </summary>
+    void OnDisable() => 收起飞剑();
+
+    void 收起飞剑()
+    {
+        if (剑体 == null) return;
+        var go = 剑体.gameObject;
+        剑体 = null;
+        if (Application.isPlaying) Destroy(go); else DestroyImmediate(go);
     }
 
     /// <summary>锁定发生变化：玩家手动右键 → 立刻开打；锁定清空 → 停止交战</summary>
