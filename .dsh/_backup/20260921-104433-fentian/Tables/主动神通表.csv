@@ -1,0 +1,6 @@
+﻿神通id,神通名称,神通品阶,修炼门槛,特效方法id,消耗灵力,维持消耗灵力,介绍
+ability_yujian_shu,御剑术,玄品,0,vfx_yujian,12,0,御使飞剑破空而出，对直线上的敌人造成法术伤害。
+ability_hanbing_jue,寒冰诀,地品,1,vfx_hanbing,20,0,凝寒气于掌心，命中后降低目标移动速度。
+ability_leiying_shu,雷影术,地品,2,vfx_leiying,26,0,化身雷光瞬移至目标身后，造成一次法术伤害。
+ability_wuxing_dun,五行遁,天品,4,vfx_dunshu,45,3,短暂遁入五行之外，期间无法被选中。
+ability_fentian_yanshu,焚天炎术,天品,5,vfx_fentian,60,0,召出焚天之炎持续灼烧范围内的敌人。

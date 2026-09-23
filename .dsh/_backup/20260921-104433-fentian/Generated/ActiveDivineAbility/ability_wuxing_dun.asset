@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7965120a34408e1458e4a6209ea3c173, type: 3}
+  m_Name: ability_wuxing_dun
+  m_EditorClassIdentifier: 
+  "\u795E\u901A\u540D\u79F0": "\u4E94\u884C\u9041"
+  "\u795E\u901Aid": ability_wuxing_dun
+  "\u795E\u901A\u54C1\u9636": 4
+  "\u4FEE\u70BC\u95E8\u69DB": 4
+  "\u7279\u6548\u65B9\u6CD5id": vfx_dunshu
+  "\u6D88\u8017\u7075\u529B": 45
+  "\u7EF4\u6301\u6D88\u8017\u7075\u529B": 3
+  "\u56FE\u6807": {fileID: 0}
+  "\u4ECB\u7ECD": "\u77ED\u6682\u9041\u5165\u4E94\u884C\u4E4B\u5916\uFF0C\u671F\u95F4\u65E0\u6CD5\u88AB\u9009\u4E2D\u3002"

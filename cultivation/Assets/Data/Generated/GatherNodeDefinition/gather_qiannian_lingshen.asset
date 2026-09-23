@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 24e34a4c1194ba545b7b82229383f80a, type: 3}
+  m_Name: gather_qiannian_lingshen
+  m_EditorClassIdentifier: 
+  "\u540D\u5B57": "\u5343\u5E74\u7075\u53C2"
+  id: gather_qiannian_lingshen
+  "\u6389\u843D\u7269":
+  - "\u7269\u54C1": {fileID: 11400000, guid: 57f845e9c0eb6754c8da2339264d0f68, type: 2}
+    "\u6570\u91CF": 1
+    "\u6982\u7387": 0.3
+  - "\u7269\u54C1": {fileID: 11400000, guid: b298cf5b1c7a6084abf6b40bb6adaa1f, type: 2}
+    "\u6570\u91CF": 5
+    "\u6982\u7387": 1
+  "\u8010\u4E45": 150
+  "\u9650\u5236\u7834\u574F\u7B49\u7EA7": 5
+  "\u91CD\u751F\u65F6\u95F4": 600
+  "\u751F\u6210\u4F4D\u7F6E": {x: -25, y: 0, z: -20}
+  "\u56FE\u6807": {fileID: 0}
+  "\u4ECB\u7ECD": "\u6709\u7075\u6027\u7684\u836F\u738B\uFF0C\u91C7\u96C6\u65F6\u4F1A\u9690\u533F\u8EAB\u5F62\u3002"
+  "\u54C1\u9636": 4

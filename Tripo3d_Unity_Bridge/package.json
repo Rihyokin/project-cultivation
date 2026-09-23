@@ -1,0 +1,26 @@
+{
+  "name": "com.tripo3d.unitybridge",
+  "displayName": "Tripo Bridge",
+  "version": "1.0.14",
+  "unity": "2021.3",
+  "description": "WebSocket-based plugin for receiving and importing 3D models from Tripo3D web frontend",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tripo3d/Tripo3D-Unity-Bridge.git"
+  },
+  "keywords": [
+    "3D",
+    "FBX",
+    "WebSocket",
+    "Import",
+    "Tripo3D"
+  ],
+  "author": {
+    "name": "Tripo AI",
+    "url": "https://www.tripo3d.ai"
+  },
+  "dependencies": {
+    "com.unity.modules.jsonserialize": "1.0.0"
+  },
+  "documentationUrl": "https://www.tripo3d.ai/blog/tripo-dcc-bridge-for-unity"
+}

@@ -1,0 +1,5 @@
+﻿id,名字,耐久,限制破坏等级,重生时间,生成位置,掉落物,品阶,介绍
+gather_ningshen_cao,凝神草,10,0,60,12|0|-8,item_ningshen_cao:2:0.9,凡品,常见的灵草，徒手即可采集。
+gather_yunjing_kuang,蕴灵石矿,40,1,180,-15|0|6,item_yunjing_shi:3:0.8|item_taixu_ling:1:0.05,黄品,需要一定采集等级才能开采的灵矿。
+gather_xuanbing_jing,玄冰晶簇,80,3,300,20|0|18,item_xuanbing_jing:2:0.7,玄品,极寒之地的晶体，需高等级采集能力。
+gather_qiannian_lingshen,千年灵参,150,5,600,-25|0|-20,item_pozhang_dan:1:0.3|item_ningshen_cao:5:1,天品,有灵性的药王，采集时会隐匿身形。

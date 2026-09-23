@@ -1,0 +1,6 @@
+﻿神通id,神通名称,神通品阶,修炼门槛,消耗灵力,维持消耗灵力,介绍,结算方式,伤害属性,伤害倍率,范围,冷却时间,需要锁定目标,持续时长,首次造成伤害时间,伤害间隔,特效资源路径
+ability_yujian_shu,御剑术,玄品,0,12,0,御使飞剑破空而出，对直线上的敌人造成法术伤害。,,,,,,,,,,
+ability_hanbing_jue,寒冰诀,地品,1,20,0,凝寒气于掌心，命中后降低目标移动速度。,,,,,,,,,,
+ability_leiying_shu,雷影术,地品,2,26,0,化身雷光瞬移至目标身后，造成一次法术伤害。,,,,,,,,,,
+ability_wuxing_dun,五行遁,天品,4,45,3,短暂遁入五行之外，期间无法被选中。,,,,,,,,,,
+ability_fentian_yanshu,焚天炎术,天品,5,60,0,召出焚天之炎灼烧范围内的敌人。,范围伤害,特殊,2.5,12,8,是,3,1,0.75,SpecialSkillsEffectsPack/AllEffects/EffectsSet_1(NotScriptBased)/Effects/Effect_13_DangerClose/Effect_13_DangerClose

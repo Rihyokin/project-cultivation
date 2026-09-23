@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cf7de0e8b934ded4abc9845a5264bfa0, type: 3}
+  m_Name: mount_shenlong_01
+  m_EditorClassIdentifier: 
+  "\u5750\u9A91\u540D\u79F0": "\u4E0A\u53E4\u795E\u9F99"
+  "\u5750\u9A91id": mount_shenlong_01
+  "\u5750\u9A91\u54C1\u9636": 5
+  "\u4FEE\u70BC\u95E8\u69DB": 75
+  "\u6A21\u578B\u8D44\u6E90\u8DEF\u5F84": NPC/Mount/ShenLong_01/ShenLong_01
+  "\u5F85\u673A\u52A8\u4F5C": CINEMA_4D___
+  "\u589E\u76CA":
+    values:
+    - 600
+    - 80
+    - 34
+    - 200
+    - 0.45
+    - 0.08
+    - 0.06
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0.05
+    - 0
+    - 0.1
+    - 0.08
+    - 4
+    - 3
+    - 0
+    - 0
+    - 0.08
+    - 0
+    - 0.08
+    - 0
+    - 0.08
+  "\u56FE\u6807": {fileID: 0}
+  "\u4ECB\u7ECD": "\u4E0A\u53E4\u9057\u79CD\u3002\u7ED5\u8EAB\u76D8\u65CB\u4E4B\u9645\u4E91\u6C14\u81EA\u751F\uFF0C\u4E58\u4E4B\u53EF\u51CC\u865A\u5FA1\u7A7A\u3002"

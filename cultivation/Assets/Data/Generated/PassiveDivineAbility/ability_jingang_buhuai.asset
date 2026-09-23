@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5ccd034b9ebfcb140b81dd705f8ab63e, type: 3}
+  m_Name: ability_jingang_buhuai
+  m_EditorClassIdentifier: 
+  "\u795E\u901A\u540D\u79F0": "\u91D1\u521A\u4E0D\u574F"
+  "\u795E\u901Aid": ability_jingang_buhuai
+  "\u795E\u901A\u54C1\u9636": 3
+  "\u4FEE\u70BC\u95E8\u69DB": 1
+  "\u7279\u6548\u65B9\u6CD5id": 
+  "\u6D88\u8017\u7075\u529B": 0
+  "\u7EF4\u6301\u6D88\u8017\u7075\u529B": 0
+  "\u56FE\u6807": {fileID: 0}
+  "\u4ECB\u7ECD": "\u88AB\u52A8\uFF1A\u8089\u8EAB\u575A\u4E0D\u53EF\u6467\uFF0C\u5927\u5E45\u63D0\u5347\u9632\u5FA1\u4E0E\u666E\u653B\u51CF\u514D\u3002"
+  "\u589E\u76CA":
+    values:
+    - 40
+    - 0
+    - 10
+    - 0
+    - 0
+    - 0
+    - 0.03
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0.06
+    - 0
+    - 0
+    - 0
+    - 0

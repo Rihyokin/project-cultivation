@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cf7de0e8b934ded4abc9845a5264bfa0, type: 3}
+  m_Name: mount_julong_01
+  m_EditorClassIdentifier: 
+  "\u5750\u9A91\u540D\u79F0": "\u5DE8\u9F99"
+  "\u5750\u9A91id": mount_julong_01
+  "\u5750\u9A91\u54C1\u9636": 4
+  "\u4FEE\u70BC\u95E8\u69DB": 60
+  "\u6A21\u578B\u8D44\u6E90\u8DEF\u5F84": NPC/Mount/JuLong_01/JuLong_01
+  "\u5F85\u673A\u52A8\u4F5C": ZhanLi
+  "\u589E\u76CA":
+    values:
+    - 400
+    - 50
+    - 20
+    - 120
+    - 0.35
+    - 0.05
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0.05
+    - 2
+    - 2
+    - 0
+    - 0
+    - 0.04
+    - 0
+    - 0.05
+    - 0
+    - 0.05
+  "\u56FE\u6807": {fileID: 0}
+  "\u4ECB\u7ECD": "\u7FFC\u5C55\u5982\u4E91\u7684\u5DE8\u9F99\u3002\u4E00\u5578\u60CA\u5929\uFF0C\u98CE\u96F7\u76F8\u968F\u3002"

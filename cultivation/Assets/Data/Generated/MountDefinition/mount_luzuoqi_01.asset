@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cf7de0e8b934ded4abc9845a5264bfa0, type: 3}
+  m_Name: mount_luzuoqi_01
+  m_EditorClassIdentifier: 
+  "\u5750\u9A91\u540D\u79F0": "\u7075\u9E7F"
+  "\u5750\u9A91id": mount_luzuoqi_01
+  "\u5750\u9A91\u54C1\u9636": 2
+  "\u4FEE\u70BC\u95E8\u69DB": 20
+  "\u6A21\u578B\u8D44\u6E90\u8DEF\u5F84": NPC/Mount/LuZuoQi/LuZuoQi_01
+  "\u5F85\u673A\u52A8\u4F5C": Idle
+  "\u589E\u76CA":
+    values:
+    - 80
+    - 0
+    - 4
+    - 0
+    - 0.25
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0.03
+    - 0
+    - 0
+    - 0
+    - 1
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+  "\u56FE\u6807": {fileID: 0}
+  "\u4ECB\u7ECD": "\u5C71\u4E2D\u7075\u9E7F\u3002\u8E0F\u96FE\u800C\u884C\uFF0C\u4E45\u4E58\u53EF\u517B\u6C14\u6D3B\u8840\u3002"

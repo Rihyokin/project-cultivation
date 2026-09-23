@@ -1,0 +1,80 @@
+# ============================================================================
+#  project-cultivation  ·  .gitignore
+#  Unity / 团结引擎 工程
+# ============================================================================
+
+# ---------------------------------------------------------------- 引擎生成物
+# 这几样是引擎自己编出来的，动辄几个 GB，绝对不能进版本库
+cultivation/[Ll]ibrary/
+cultivation/[Tt]emp/
+cultivation/[Oo]bj/
+cultivation/[Bb]uild/
+cultivation/[Bb]uilds/
+cultivation/[Ll]ogs/
+cultivation/[Uu]ser[Ss]ettings/
+cultivation/[Mm]emoryCaptures/
+cultivation/[Rr]ecordings/
+
+# 崩溃日志
+sysinfo.txt
+*.stackdump
+
+# ---------------------------------------------------------------- 编译 / IDE
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+*.tmp
+.vs/
+.idea/
+.vscode/
+*.apk
+*.aab
+*.unitypackage
+
+# ---------------------------------------------------------------- 本工程特有
+# 桥接工具（可重新获取，且带 267 MB 的索引 db）
+cultivation/.codely.packages/
+cultivation/.codely-cli/
+
+# 验证用的截图 / 录屏（我每次验证都会生成，几十上百 MB，且不是项目资产）
+cultivation/screenshots/
+
+# 原始下载素材：里面有一个 118 MB 的 .c4d，
+# **超过 GitHub 单文件 100 MB 的硬上限**，push 会直接被拒。
+# 里面能用的部分（fbx + 贴图）已经导入到 Assets/resources/NPC/Mount/ 了，
+# 纯源文件请用网盘 / Git LFS 单独备份。
+somenews/
+
+# 本地快照（.dsh/_snapshot）是"备份的备份"，提交进仓库会让仓库自己翻倍
+.dsh/_snapshot/
+# 本地工具脚本（走代理推 GitHub 用的 node 脚本），不属于项目
+.dsh/_tools/
+.dsh/_scene_backup/
+
+# 打包出来准备上传的 zip
+_backup_zip/
+
+# ---------------------------------------------------------------- 凭据（绝对不能进仓库）
+# 令牌文件就放在仓库根目录，**一旦提交上去就必须立刻吊销重建**
+*令牌*
+*token*
+*token*.txt
+*.pat
+github访问令牌*.txt
+
+# ---------------------------------------------------------------- 系统垃圾
+Thumbs.db
+ehthumbs.db
+desktop.ini
+.DS_Store
+*~

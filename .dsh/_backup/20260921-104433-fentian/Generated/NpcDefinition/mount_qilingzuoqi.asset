@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f7435407ab69b940ab5db5c908b00c7, type: 3}
+  m_Name: mount_qilingzuoqi
+  m_EditorClassIdentifier: 
+  "\u540D\u5B57": "\u65B0NPC"
+  id: mount_qilingzuoqi
+  "\u80CC\u5305\u7269\u54C1": []
+  "\u5BF9\u4E3B\u89D2\u597D\u611F\u5EA6": 0
+  "\u5883\u754C": 0
+  "\u795E\u8BC6": 0
+  "\u5C5E\u6027":
+    values:
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+  "\u6B7B\u4EA1\u540E\u7ACB\u5373\u91CD\u751F": 0
+  "\u91CD\u751F\u5EF6\u8FDF": 0
+  "\u56FE\u6807": {fileID: 0}
+  "\u4ECB\u7ECD": 

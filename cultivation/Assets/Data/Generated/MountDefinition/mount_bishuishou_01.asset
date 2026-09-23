@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cf7de0e8b934ded4abc9845a5264bfa0, type: 3}
+  m_Name: mount_bishuishou_01
+  m_EditorClassIdentifier: 
+  "\u5750\u9A91\u540D\u79F0": "\u78A7\u6C34\u517D"
+  "\u5750\u9A91id": mount_bishuishou_01
+  "\u5750\u9A91\u54C1\u9636": 3
+  "\u4FEE\u70BC\u95E8\u69DB": 25
+  "\u6A21\u578B\u8D44\u6E90\u8DEF\u5F84": NPC/Mount/BiShuiShou_01/BiShuiShou_01
+  "\u5F85\u673A\u52A8\u4F5C": Idle
+  "\u589E\u76CA":
+    values:
+    - 250
+    - 0
+    - 18
+    - 60
+    - 0.22
+    - 0
+    - 0.04
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 2
+    - 1
+    - 0
+    - 0
+    - 0.03
+    - 0
+    - 0.02
+    - 0
+    - 0
+  "\u56FE\u6807": {fileID: 0}
+  "\u4ECB\u7ECD": "\u78A7\u6C34\u4E4B\u517D\u3002\u5468\u8EAB\u6C34\u6C14\u7F2D\u7ED5\uFF0C\u8F7D\u4E4B\u53EF\u907F\u706B\u6BD2\u3001\u62A4\u4F53\u751F\u6D25\u3002"

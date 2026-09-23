@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cf7de0e8b934ded4abc9845a5264bfa0, type: 3}
+  m_Name: mount_langqi_01
+  m_EditorClassIdentifier: 
+  "\u5750\u9A91\u540D\u79F0": "\u72FC\u9A91"
+  "\u5750\u9A91id": mount_langqi_01
+  "\u5750\u9A91\u54C1\u9636": 2
+  "\u4FEE\u70BC\u95E8\u69DB": 10
+  "\u6A21\u578B\u8D44\u6E90\u8DEF\u5F84": NPC/Mount/LangQi_01/LangQi_01
+  "\u5F85\u673A\u52A8\u4F5C": Idle
+  "\u589E\u76CA":
+    values:
+    - 0
+    - 10
+    - 2
+    - 0
+    - 0.2
+    - 0.02
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0.03
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+  "\u56FE\u6807": {fileID: 0}
+  "\u4ECB\u7ECD": "\u5317\u5730\u96EA\u72FC\u3002\u6027\u70C8\u800C\u5FE0\u4E8E\u4E3B\uFF0C\u51B2\u950B\u65F6\u6C14\u52BF\u903C\u4EBA\u3002"

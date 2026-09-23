@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f7435407ab69b940ab5db5c908b00c7, type: 3}
+  m_Name: npc_thxr
+  m_EditorClassIdentifier: 
+  "\u540D\u5B57": "\u6843\u82B1\u4ED9\u4EBA"
+  id: npc_thxr
+  "\u80CC\u5305\u7269\u54C1": []
+  "\u5BF9\u4E3B\u89D2\u597D\u611F\u5EA6": 10
+  "\u7C7B\u578B": 3
+  "\u5883\u754C": 81
+  "\u795E\u8BC6": 234
+  "\u5C5E\u6027":
+    values:
+    - 35186
+    - 412
+    - 474
+    - 10464
+    - 1
+    - 0.4
+    - 0.16
+    - 1.5
+    - 0.32
+    - 0.16
+    - 1.3
+    - 0.16
+    - 0.08
+    - 0.24
+    - 0.24
+    - 0
+    - 0.24
+    - 1
+    - 351.86
+    - 209.28
+    - 0
+    - 0.16
+    - 0.16
+    - 0
+    - 0
+    - 0
+    - 0
+  "\u7D22\u654C\u8303\u56F4": 0
+  "\u6B7B\u4EA1\u540E\u7ACB\u5373\u91CD\u751F": 0
+  "\u91CD\u751F\u5EF6\u8FDF": 0
+  "\u6A21\u578B\u8D44\u6E90\u8DEF\u5F84": 
+  "\u56FE\u6807": {fileID: 0}
+  "\u4ECB\u7ECD": "\u6843\u82B1\u6811\u4E0B\u7684\u9690\u4ED9\uFF0C\u4E0D\u5E38\u73B0\u8EAB\uFF0C\u89C1\u8005\u7686\u8A00\u5176\u6C14\u5EA6\u4E0D\u51E1\u3002"

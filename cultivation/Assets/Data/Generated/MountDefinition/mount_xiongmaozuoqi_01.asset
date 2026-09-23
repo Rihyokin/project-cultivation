@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cf7de0e8b934ded4abc9845a5264bfa0, type: 3}
+  m_Name: mount_xiongmaozuoqi_01
+  m_EditorClassIdentifier: 
+  "\u5750\u9A91\u540D\u79F0": "\u718A\u732B\u5750\u9A91"
+  "\u5750\u9A91id": mount_xiongmaozuoqi_01
+  "\u5750\u9A91\u54C1\u9636": 3
+  "\u4FEE\u70BC\u95E8\u69DB": 30
+  "\u6A21\u578B\u8D44\u6E90\u8DEF\u5F84": NPC/Mount/XiongMaoZuoQi/XiongMaoZuoQi_01
+  "\u5F85\u673A\u52A8\u4F5C": Idle
+  "\u589E\u76CA":
+    values:
+    - 200
+    - 6
+    - 24
+    - 0
+    - 0.2
+    - 0
+    - 0.03
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 2
+    - 0
+    - 0
+    - 0
+    - 0.05
+    - 0
+    - 0
+    - 0
+    - 0
+  "\u56FE\u6807": {fileID: 0}
+  "\u4ECB\u7ECD": "\u8700\u4E2D\u5F02\u517D\u3002\u76AE\u7CD9\u8089\u539A\u3001\u61A8\u6001\u53EF\u63AC\uFF0C\u5750\u4E0A\u53BB\u7A33\u5982\u6CF0\u5C71\u3002"

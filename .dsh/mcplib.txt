@@ -1,0 +1,32 @@
+function Invoke-McpTool {
+    param(
+        [Parameter(Mandatory = $true)][string]$Tool,
+        [string]$Json = '{}',
+        [string]$Endpoint = 'http://127.0.0.1:8765/mcp'
+    )
+    $headers = @{ 'Accept' = 'application/json, text/event-stream'; 'Content-Type' = 'application/json' }
+
+    function _Send($body, $sessionId) {
+        $h = @{} + $headers
+        if ($sessionId) { $h['mcp-session-id'] = $sessionId }
+        $r = Invoke-WebRequest -Uri $Endpoint -Method Post -Body $body -Headers $h -TimeoutSec 900 -UseBasicParsing
+        $line = ($r.Content -split "`n" | Where-Object { $_ -match '^\s*\{' } | Select-Object -Last 1)
+        return @{ J = ($line | ConvertFrom-Json); S = $r.Headers['mcp-session-id'] }
+    }
+
+    $init = '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"dsh","version":"1.0"}}}'
+    $s = _Send $init $null
+    $sid = $s.S
+    if ($sid -is [array]) { $sid = $sid[0] }
+    _Send '{"jsonrpc":"2.0","method":"notifications/initialized"}' $sid | Out-Null
+
+    $payload = @{
+        jsonrpc = '2.0'; id = 2; method = 'tools/call'
+        params  = @{ name = $Tool; arguments = ($Json | ConvertFrom-Json) }
+    } | ConvertTo-Json -Depth 20 -Compress
+
+    $j = (_Send $payload $sid).J
+    $texts = @($j.result.content | Where-Object { $_.type -eq 'text' } | ForEach-Object { $_.text })
+    if ($texts.Count -gt 0) { return ($texts -join "`n") }
+    return ($j | ConvertTo-Json -Depth 20)
+}

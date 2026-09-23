@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cf7de0e8b934ded4abc9845a5264bfa0, type: 3}
+  m_Name: mount_chibang_01
+  m_EditorClassIdentifier: 
+  "\u5750\u9A91\u540D\u79F0": "\u7075\u7FC5"
+  "\u5750\u9A91id": mount_chibang_01
+  "\u5750\u9A91\u54C1\u9636": 1
+  "\u4FEE\u70BC\u95E8\u69DB": 1
+  "\u6A21\u578B\u8D44\u6E90\u8DEF\u5F84": NPC/Mount/ChiBang_01/ChiBang_01
+  "\u5F85\u673A\u52A8\u4F5C": Idle
+  "\u589E\u76CA":
+    values:
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0.15
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0.02
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+  "\u56FE\u6807": {fileID: 0}
+  "\u4ECB\u7ECD": "\u8F7B\u7075\u7FBD\u7FFC\u3002\u4E58\u4E4B\u5219\u8EAB\u8F7B\u5982\u71D5\u3001\u5954\u884C\u5982\u98CE\u3002"

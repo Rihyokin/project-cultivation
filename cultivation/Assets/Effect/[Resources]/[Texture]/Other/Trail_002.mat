@@ -1,0 +1,67 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Trail_002
+  m_Shader: {fileID: 4800000, guid: 2688cba13088b134db8a36d8507ad14b, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _Alpha:
+        m_Texture: {fileID: 2800000, guid: a3fd364bff6591b4aadc8cc5675c99fb, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Blend_Texture:
+        m_Texture: {fileID: 2800000, guid: eba49227d4d58ac438dd069ef9972fec, type: 3}
+        m_Scale: {x: 0.5, y: 0.5}
+        m_Offset: {x: 0, y: 0}
+    - _Blend_Texture01:
+        m_Texture: {fileID: 2800000, guid: d5408633313bcd140959ce509e4af2fc, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 2800000, guid: e61cb0a291aa536458ac31f731074db3, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MaskTex:
+        m_Texture: {fileID: 2800000, guid: b2e3075485469244c8c2313d89c34e61, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Offset:
+        m_Texture: {fileID: 2800000, guid: 15b747f57e92b5043bda966aec143c9a, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _Distortion: 1
+    - _Fresnel_Value: 0.17910449
+    - _Gloss: 1
+    - _Lighten: 4.2
+    - _LightenMain: 1.1
+    - _Speed: -10
+    - _Speed00: 30
+    - _Speed01: 20
+    - _Speed02: -29.6
+    m_Colors:
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _Color01: {r: 1, g: 1, b: 1, a: 1}
+    - _Color02: {r: 1, g: 0.3249139, b: 0.014925361, a: 1}
+    - _Color03: {r: 1, g: 0.8276798, b: 0.052238822, a: 1}
+    - _TintColor: {r: 1, g: 0.76933515, b: 0.51492536, a: 0.4627451}
+  m_BuildTextureStacks: []
