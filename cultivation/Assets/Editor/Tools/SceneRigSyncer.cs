@@ -29,8 +29,10 @@ public static class SceneRigSyncer
         "Player", "Main Camera", "EventSystem", "HudCanvas", "CharacterUI", "暂停菜单", "SpawnPoint",
     };
 
-    /// <summary>这几个根总是用源场景的覆盖（相机必须带跟随脚本，否则"能玩"不成立）</summary>
-    static readonly string[] 总是覆盖 = { "Main Camera" };
+    /// <summary>这几个根总是用源场景的覆盖。Player 也在这里：场景里若残留一个**空的** Player
+    /// 根物体（例如手删了角色预制体只删了子物体），"缺失才补"的规则会跳过它，
+    /// 结果留下空壳 ✗ —— 所以 Player 必须强制覆盖。</summary>
+    static readonly string[] 总是覆盖 = { "Player", "Main Camera" };
 
     [MenuItem("修仙/同步通用角色与UI到所有游玩场景")]
     public static void SyncMenu() => Sync();
@@ -110,7 +112,9 @@ public static class SceneRigSyncer
 
                     var 搬 = 源根[k];
                     EditorSceneManager.MoveGameObjectToScene(搬, 目标场景);
-                    if (k == "Player" || k == "SpawnPoint") { 搬.transform.position = new Vector3(0f, 0f, 0f); }
+                    // ★ 位置一律保留目标场景原有的（没有同名物体才用源的位置）——
+                    //   例如 Sect 的玩家在 (-83.6, 18.1, 89.9)、塔里在 (0, 4.99, -9)，
+                    //   强行归零会把玩家丢到塔外/地底下 ✗
                     if (有 && k != "Main Camera") { 搬.transform.position = 原位置; 搬.transform.rotation = 原旋转; }
 
                     if (有调参)

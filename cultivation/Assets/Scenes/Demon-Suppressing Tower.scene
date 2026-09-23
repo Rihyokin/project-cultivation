@@ -3012,7 +3012,7 @@ MonoBehaviour:
   percentText: {fileID: 1970246132}
   expText: {fileID: 1080265330}
   data: {fileID: 1431189816}
-  cultivation: {fileID: 1805764458}
+  cultivation: {fileID: 0}
   fillMaxWidth: 0
   infoText: {fileID: 1810779536}
 --- !u!114 &94302276
@@ -27382,8 +27382,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   "\u9762\u677F\u6570\u636E": {fileID: 0}
-  "\u751F\u547D": {fileID: 1805764452}
-  "\u65BD\u653E\u5668": {fileID: 1805764459}
+  "\u751F\u547D": {fileID: 0}
+  "\u65BD\u653E\u5668": {fileID: 0}
   "\u529F\u6CD5\u56FE\u6807": {fileID: 35370880}
   "\u6280\u80FD\u683C\u4EEC":
   - "\u5E95": {fileID: 0}
@@ -27426,7 +27426,7 @@ MonoBehaviour:
   "\u6C14\u8840\u6587\u5B57": {fileID: 1070329961}
   "\u7075\u529B\u586B\u5145": {fileID: 1729696010}
   "\u7075\u529B\u6587\u5B57": {fileID: 677554885}
-  "\u4FEE\u4E3A": {fileID: 1805764458}
+  "\u4FEE\u4E3A": {fileID: 0}
   "\u4FEE\u70BC\u586B\u5145": {fileID: 2124821080}
   "\u4FEE\u70BC\u6587\u5B57": {fileID: 2095814216}
   "\u4FEE\u70BC\u8FFD\u8D76\u901F\u5EA6": 1.6
@@ -47425,7 +47425,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3b525eed62094964f8c017797ead93ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  target: {fileID: 0}
+  target: {fileID: 1805764444}
   lookHeight: 1.2
   pitch: 50
   yaw: 45
@@ -48088,7 +48088,7 @@ MonoBehaviour:
   turnSpeed: 720
   gravity: -25
   visualYawOffset: 0
-  cameraTransform: {fileID: 0}
+  cameraTransform: {fileID: 1786122618}
   "\u5FA1\u98CE": {fileID: 0}
   "\u5750\u9A91": {fileID: 1805764462}
   "\u76EE\u6807\u7BA1\u7406\u5668": {fileID: 0}
@@ -48339,7 +48339,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   "\u653B\u51FB\u952E": 324
-  "\u9501\u5B9A\u76F8\u673A": {fileID: 0}
+  "\u9501\u5B9A\u76F8\u673A": {fileID: 1786122617}
   "\u73A9\u5BB6\u6218\u6597\u5C5E\u6027": {fileID: 1805764448}
   "\u76EE\u6807\u7BA1\u7406\u5668": {fileID: 1805764450}
   "\u6253\u5370\u6218\u6597\u65E5\u5FD7": 1
@@ -48357,7 +48357,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4e57bc237ddeb5c40b3eff39acc34fb6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  "\u9762\u677F\u6570\u636E": {fileID: 1431189816}
+  "\u9762\u677F\u6570\u636E": {fileID: 0}
   "\u666E\u653B\u65B9\u6CD5\u8868":
   - "\u65B9\u6CD5id": basic_sword_01
     "\u7EC4\u4EF6\u7C7B\u540D": BasicSword01
@@ -48400,7 +48400,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c2b6f5c60c19ba940aabfb38fc8ac6a9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  "\u9762\u677F\u6570\u636E": {fileID: 1431189816}
+  "\u9762\u677F\u6570\u636E": {fileID: 0}
   "\u5883\u754C\u8868":
   - {fileID: 11400000, guid: 658f088b93cf8e947815ea7c0fd25871, type: 2}
   - {fileID: 11400000, guid: 8e7e7685572c5d940883723106b1f122, type: 2}
@@ -48599,7 +48599,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d6a270778b4637141862e0371ea7813c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  "\u9762\u677F\u6570\u636E": {fileID: 1431189816}
+  "\u9762\u677F\u6570\u636E": {fileID: 0}
   "\u63A7\u5236\u5668": {fileID: 1805764445}
   "\u5FA1\u98CE": {fileID: 1805764454}
   "\u52A8\u753B": {fileID: 1805764446}
@@ -48825,7 +48825,7 @@ MonoBehaviour:
   "\u884C\u8FDB\u5224\u5B9A\u901F\u5EA6": 0.2
   "\u6D88\u6563\u989C\u8272": {r: 0.55, g: 0.9, b: 1, a: 1}
   "\u6D88\u6563\u534A\u5F84": 2.5
-  "\u63D0\u793A\u7EC4\u4EF6": {fileID: 1431189815}
+  "\u63D0\u793A\u7EC4\u4EF6": {fileID: 0}
   "\u6253\u5370\u65E5\u5FD7": 1
   "\u51FA\u751F\u4FDD\u5E95\u65F6\u957F": 1.2
   "\u51FA\u751F\u4FDD\u5E95\u7279\u6548\u989C\u8272": {r: 0.6, g: 0.9, b: 1, a: 1}
@@ -58861,12 +58861,12 @@ SceneRoots:
   m_Roots:
   - {fileID: 22294231}
   - {fileID: 2390295269505133844}
-  - {fileID: 1805764444}
   - {fileID: 119247751}
   - {fileID: 1059389728}
   - {fileID: 1431189821}
   - {fileID: 742462318}
   - {fileID: 155455943}
-  - {fileID: 1786122618}
   - {fileID: 1380260650}
   - {fileID: 594805527}
+  - {fileID: 1805764444}
+  - {fileID: 1786122618}
