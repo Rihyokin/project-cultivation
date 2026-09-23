@@ -58,6 +58,8 @@ public class UIMountPage : MonoBehaviour
     float 当前偏航 = 200f, 当前俯仰 = 8f;
     float 环绕半径 = 6f;
     Vector3 环绕中心;
+    string 待播动作;          // 非空 = 待机动作还没播上（NpcAnimator 未就绪）→ 每帧重试
+    int 待播帧数;
 
     const float 场地高度 = -4000f;
 
@@ -90,11 +92,7 @@ public class UIMountPage : MonoBehaviour
     void 建场地()
     {
         if (贴图 == null)
-        {
-            贴图 = new RenderTexture(Mathf.Max(128, 贴图边长), Mathf.Max(128, 贴图边长), 16, RenderTextureFormat.ARGB32);
-            贴图.antiAliasing = 4;
-            贴图.Create();
-        }
+            按比例建贴图(取预览图比例());
         if (预览图 != null) 预览图.texture = 贴图;
 
         if (场地 != null) { 场地.gameObject.SetActive(true); 相机.enabled = true; 刷新相机(); return; }
@@ -123,6 +121,55 @@ public class UIMountPage : MonoBehaviour
         加灯("背光", new Vector3(0f, 2.0f, 3.6f), 0.8f, new Color(1f, 0.92f, 0.80f), 18f);
 
         刷新相机();
+    }
+
+    /// <summary>预览图的宽高比（高 / 宽）。布局还没算出来时按正方形算。</summary>
+    float 取预览图比例()
+    {
+        if (预览图 == null) return 1f;
+        var r = 预览图.rectTransform != null ? 预览图.rectTransform.rect : new Rect(0f, 0f, 512f, 512f);
+        if (r.width < 1f || r.height < 1f) return 1f;
+        return Mathf.Clamp(r.height / r.width, 0.25f, 4f);
+    }
+
+    /// <summary>
+    /// ★ RenderTexture 的宽高比必须和**预览图的矩形**一致，否则画面被拉伸 ✗
+    /// 原来是写死正方形，而预览图是宽扁的 → 坐骑**横向被拉宽**（用户 2026-09-23 报的）。
+    /// </summary>
+    void 按比例建贴图(float 比)
+    {
+        // 长边取「贴图边长」和「预览图实际尺寸」里大的那个 —— 预览图 (1190×331) 比 512 还长，
+        // 按 512 建会糊；按它自己的尺寸建正好一个像素对一个像素。
+        var r = 预览图 != null && 预览图.rectTransform != null
+            ? 预览图.rectTransform.rect : new Rect(0f, 0f, 贴图边长, 贴图边长);
+        float 长边 = Mathf.Clamp(Mathf.Max(贴图边长, Mathf.Max(r.width, r.height)), 128f, 2048f);
+        int 宽, 高;
+        if (比 >= 1f) { 高 = Mathf.RoundToInt(长边); 宽 = Mathf.Max(128, Mathf.RoundToInt(长边 / 比)); }
+        else { 宽 = Mathf.RoundToInt(长边); 高 = Mathf.Max(128, Mathf.RoundToInt(长边 * 比)); }
+
+        if (相机 != null) 相机.targetTexture = null;          // 先摘掉，别指着正在销毁的贴图
+        if (贴图 != null)
+        {
+            贴图.Release();
+            if (Application.isPlaying) Destroy(贴图); else DestroyImmediate(贴图);
+        }
+
+        贴图 = new RenderTexture(宽, 高, 16, RenderTextureFormat.ARGB32);
+        贴图.antiAliasing = 4;
+        贴图.Create();
+
+        if (预览图 != null) 预览图.texture = 贴图;
+        if (相机 != null) 相机.targetTexture = 贴图;
+        if (打印日志) Debug.Log("[坐骑页] 预览贴图 " + 宽 + "×" + 高 + "（预览图比例 " + 比.ToString("F3") + "）", this);
+    }
+
+    /// <summary>预览图矩形变了（首帧布局、改分辨率）就重建贴图，比例始终对得上</summary>
+    void 必要时重建贴图()
+    {
+        float 比 = 取预览图比例();
+        if (贴图 == null) { 按比例建贴图(比); return; }
+        if (Mathf.Abs(比 - 贴图.height / (float)贴图.width) < 0.01f) return;
+        按比例建贴图(比);
     }
 
     void 加灯(string 名, Vector3 位置, float 强度, Color 色, float 范围)
@@ -218,6 +265,19 @@ public class UIMountPage : MonoBehaviour
         {
             an.cullingMode = AnimatorCullingMode.AlwaysAnimate;   // ★ 别让它被"离相机远"剔除
             an.applyRootMotion = false;
+            // ★★ 用**不受 timeScale 影响**的时间播 ★★
+            // 角色面板打开时会把 Time.timeScale 归零（CharacterPanelUI.pauseGameWhenOpen），
+            // 而 Animator 默认是 Normal（吃缩放时间）→ deltaTime=0 → **姿势冻在某一帧不动**，
+            // 看上去就是"预览里的坐骑没挂 idle 动画"（用户 2026-09-23 报的）。
+            an.updateMode = AnimatorUpdateMode.UnscaledTime;
+        }
+
+        // ★★ 旧版 Animation 组件必须**删掉**（只 enabled=false 不够）★★
+        // Animator 和 Animation 是互斥的：只要 Animation 组件存在，Mecanim 就不绑 clip ——
+        // 表现是状态机照常推进、骨架一根不动（翅膀 prefab 就是这样，同 MountRider 里的处理）。
+        foreach (var a in 当前模型.GetComponentsInChildren<Animation>(true))
+        {
+            if (Application.isPlaying) Destroy(a); else DestroyImmediate(a);
         }
 
         // 摆正：把包围盒中心对到场地原点，再整体抬高
@@ -230,26 +290,57 @@ public class UIMountPage : MonoBehaviour
         环绕半径 = Mathf.Max(0.5f, b.extents.magnitude);
 
         // 播待机动作
-        string 动作 = string.IsNullOrEmpty(m.待机动作) ? "Idle" : m.待机动作;
-        var na = 当前模型.GetComponentInChildren<NpcAnimator>();
-        bool 播了 = false;
-        if (na != null) 播了 = na.PlayAction(动作, true);
-        if (!播了)
-        {
-            var an = 当前模型.GetComponentInChildren<Animator>();
-            if (an != null && an.runtimeAnimatorController != null)
-            {
-                int 状态 = an.HasState(0, Animator.StringToHash(动作)) ? Animator.StringToHash(动作) : 0;
-                an.Play(状态, 0, 0f);
-            }
-        }
-        if (打印日志) Debug.Log("[坐骑页] 预览 " + m.坐骑名称 + " 动作=" + 动作 + " 播成功=" + 播了, this);
+        // 【为什么不能只播一次】NpcAnimator 要等它**自己的 Start** 才「已就绪」，
+        // 而 Instantiate 当帧 Start 还没跑 → PlayAction 直接 return false，
+        // 表现就是**预览里的坐骑僵在默认姿势、不播 idle**（用户 2026-09-23 报的）。
+        // 所以这里交给 试播待机() 每帧重试，播上了就停（同 MountRider 里出生动画的处理）。
+        待播动作 = string.IsNullOrEmpty(m.待机动作) ? "Idle" : m.待机动作;
+        待播帧数 = 120;                  // 两秒还播不上就放弃（别每帧刷警告）
+        试播待机();
 
         刷新相机();
     }
 
+    /// <summary>
+    /// 播预览模型的待机动作。NpcAnimator 没就绪时**不报错**，交给下一帧再试。
+    /// </summary>
+    void 试播待机()
+    {
+        if (当前模型 == null || string.IsNullOrEmpty(待播动作)) { 待播动作 = null; return; }
+        if (待播帧数-- <= 0) { 待播动作 = null; return; }
+
+        var an = 当前模型.GetComponentInChildren<Animator>();
+        if (an == null || an.runtimeAnimatorController == null) { 待播动作 = null; return; }
+
+        var na = 当前模型.GetComponentInChildren<NpcAnimator>();
+        if (na != null)
+        {
+            var 表 = na.AvailableActions;
+            if (表 == null || 表.Length == 0) return;                       // 还没就绪 → 下一帧再来
+            if (System.Array.IndexOf(表, 待播动作) < 0)
+            {
+                if (打印日志) Debug.LogWarning("[坐骑页] 控制器里没有动作「" + 待播动作 + "」，可用："
+                    + string.Join(", ", 表), this);
+                待播动作 = null;
+                return;
+            }
+            if (na.PlayAction(待播动作, true))
+            {
+                if (打印日志) Debug.Log("[坐骑页] 预览动作已播：" + 待播动作, this);
+                待播动作 = null;
+            }
+            return;
+        }
+
+        // 没有 NpcAnimator（控制器不是 Character 那套）→ 直接 Play 状态兜底
+        int 号 = Animator.StringToHash(待播动作);
+        an.Play(an.HasState(0, 号) ? 号 : 0, 0, 0f);
+        待播动作 = null;
+    }
+
     void 清模型()
     {
+        待播动作 = null;
         if (当前模型 == null) return;
         if (Application.isPlaying) Destroy(当前模型); else DestroyImmediate(当前模型);
         当前模型 = null;
@@ -277,7 +368,10 @@ public class UIMountPage : MonoBehaviour
 
     void Update()
     {
-        if (相机 == null || 当前模型 == null) return;
+        if (相机 == null) return;
+        必要时重建贴图();                      // 预览图矩形变了就换贴图，比例始终对得上
+        if (当前模型 == null) return;
+        if (!string.IsNullOrEmpty(待播动作)) 试播待机();
         if (可以拖动旋转 && Input.GetMouseButton(0) && 指针在预览图上())
         {
             当前偏航 += Input.GetAxis("Mouse X") * 4f;
