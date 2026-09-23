@@ -209,7 +209,7 @@ public class Teleporter : MonoBehaviour
 
         关面板();
         if (string.IsNullOrEmpty(o.场景)) 同场景传送(o);
-        else StartCoroutine(跨场景传送(o));
+        else 跨场景传送(o);
     }
 
     void 同场景传送(传送选项 o)
@@ -219,17 +219,44 @@ public class Teleporter : MonoBehaviour
         放下玩家(点);
     }
 
-    IEnumerator 跨场景传送(传送选项 o)
+    /// <summary>
+    /// ★★ 跨场景传送必须交给一个**不随场景销毁的宿主**去做。
+    ///
+    /// 【为什么不能用本组件自己的协程】`LoadSceneMode.Single` 会销毁旧场景里所有物体 ——
+    /// 包括**挂在本光圈上的这个组件**。协程是挂在组件上的，组件没了协程当场中断 ✗，
+    /// 于是"加载完成后找落点、把玩家放过去"那段**永远不会执行**。
+    /// 症状极具迷惑性：场景确实切过去了、目标物体也确实存在，但玩家留在**新场景里保存的位置**
+    /// （实测：从 3C 传到 Sect，玩家落在 Sect 存档点 (-83.6, 14.2, 89.9)，离目标 91m ✗）。
+    /// </summary>
+    void 跨场景传送(传送选项 o)
     {
-        上次选项 = System.Array.IndexOf(选项, o);
-        yield return null;                                   // 让 UI 先收起来
-        var op = SceneManager.LoadSceneAsync(o.场景, LoadSceneMode.Single);
-        if (op == null) { Debug.LogError("[传送] 加载场景「" + o.场景 + "」失败 —— 它加进 Build Settings 了吗？", this); yield break; }
-        while (!op.isDone) yield return null;
-        yield return null;                                   // 等新场景 Awake/Start 跑完
-        var 点 = 找落点(o.落点, SceneManager.GetActiveScene());
-        if (点 == null) { Debug.LogWarning("[传送] 新场景「" + o.场景 + "」里找不到落点「" + o.落点 + "」", this); yield break; }
-        放下玩家(点);
+        var 宿主物体 = new GameObject("传送宿主");
+        Object.DontDestroyOnLoad(宿主物体);
+        var 宿主 = 宿主物体.AddComponent<传送宿主>();
+        宿主.开始(o.场景, o.落点);
+    }
+
+    /// <summary>跨场景传送的宿主：活在 DontDestroyOnLoad 上，加载完新场景后落地，然后自毁</summary>
+    public class 传送宿主 : MonoBehaviour
+    {
+        public void 开始(string 场景, string 落点) { StartCoroutine(跑(场景, 落点)); }
+
+        System.Collections.IEnumerator 跑(string 场景, string 落点)
+        {
+            yield return null;                                   // 让确认框先收起来
+            var op = SceneManager.LoadSceneAsync(场景, LoadSceneMode.Single);
+            if (op == null) { Debug.LogError("[传送] 加载场景「" + 场景 + "」失败 —— 它加进 Build Settings 了吗？"); 自毁(); yield break; }
+            while (!op.isDone) yield return null;
+            yield return null;                                   // 等新场景 Awake/Start
+            yield return new WaitForEndOfFrame();
+
+            var 点 = 找落点(落点, SceneManager.GetActiveScene());
+            if (点 == null) { Debug.LogWarning("[传送] 新场景「" + 场景 + "」里找不到落点「" + 落点 + "」"); 自毁(); yield break; }
+            放下玩家(点);
+            自毁();
+        }
+
+        void 自毁() { if (this != null && gameObject != null) Destroy(gameObject); }
     }
 
     static Transform 找落点(string 名, Scene 场景)
