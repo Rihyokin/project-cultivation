@@ -64,7 +64,7 @@ public class 外观页 : MonoBehaviour
         for (int i = 0; i < 库.全部.Count; i++)
         {
             var a = 库.全部[i];
-            if (a == null || !a.已解锁) continue;      // 只列"当前持有"的
+            if (a == null || !已拥有(a)) continue;      // 只列"当前持有"的（用户 2026-09-27：靠道具获得，不看解锁标记）
             建行(a);
         }
 
@@ -76,10 +76,23 @@ public class 外观页 : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 这件外观现在算"持有"吗。
+    /// 用户 2026-09-27 定的口径：**不靠标记解锁，而是任务发道具、道具使用后获得** ——
+    /// 所以权威是 <see cref="玩家外观.已拥有"/>（默认外观永远算有）。
+    /// 拿不到 玩家外观 组件时退回外观资产自己的 已解锁（默认拥有 / 标记），至少不会全空。
+    /// </summary>
+    bool 已拥有(AppearanceDefinition a)
+    {
+        if (玩家外观组件 == null) 玩家外观组件 = FindObjectOfType<玩家外观>();
+        if (玩家外观组件 != null) return 玩家外观组件.已拥有(a);
+        return a != null && a.已解锁;
+    }
+
     AppearanceDefinition 第一件()
     {
         for (int i = 0; i < 库.全部.Count; i++)
-            if (库.全部[i] != null && 库.全部[i].已解锁) return 库.全部[i];
+            if (库.全部[i] != null && 已拥有(库.全部[i])) return 库.全部[i];
         return null;
     }
 
