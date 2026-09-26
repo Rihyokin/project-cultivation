@@ -92,6 +92,13 @@ public class StationInteractor : MonoBehaviour
     Text 提示键字;            // ★ 键帽上的字（F / 右键）—— 2026-09-26 合并建筑与 NPC 交互时加的
     GameObject 提示根;
 
+    // ★ 2026-09-26 用户要求：NPC 的**名字单独放头顶**，而「F 对话」小框挪到 **NPC 身侧**（建筑保持原样）
+    Text 名字文字;
+    GameObject 名字根;
+
+    [Tooltip("NPC 的「F 对话」小框离身体多远（米，沿屏幕右方向量）")]
+    public float 身侧距离 = 0.55f;
+
     void Awake()
     {
         主相机 = Camera.main;
@@ -184,8 +191,6 @@ public class StationInteractor : MonoBehaviour
         if (提示根 == null) return;
 
         提示根.SetActive(true);
-        // ★ 提示文案跟着"这件东西实际用哪个键"走（原来写死"右键"，建筑改成 F 后就对不上了）
-        提示文字.text = 最近设施.标题;
         if (提示键字 != null) 提示键字.text = StationInteractable.按键名(最近设施.取按键(交互键));
 
         var 位 = 最近设施.transform.position;
@@ -198,9 +203,45 @@ public class StationInteractor : MonoBehaviour
             for (int i = 1; i < 渲染器.Length; i++) b.Encapsulate(渲染器[i].bounds);
             顶 = (b.max.y - 最近设施.transform.position.y) + 提示抬高;
         }
-        提示根.transform.position = 位 + Vector3.up * 顶;
 
         if (主相机 == null) 主相机 = Camera.main;
+
+        // ★ 用户要的排版（2026-09-26）：
+        //   NPC → **头顶只有名字**，另外在**身侧**放一个「F 对话」小框；
+        //   建筑 → 保持老样子，头顶一个「F 炼丹」。
+        bool 是对话 = 最近设施.类型 == StationInteractable.StationKind.对话;
+
+        if (是对话)
+        {
+            确保名字存在();
+            if (名字根 != null)
+            {
+                名字根.SetActive(true);
+                if (名字文字 != null) 名字文字.text = 最近设施.标题;
+                名字根.transform.position = 位 + Vector3.up * 顶;
+                if (主相机 != null)
+                    名字根.transform.rotation = Quaternion.LookRotation(
+                        名字根.transform.position - 主相机.transform.position, 主相机.transform.up);
+            }
+
+            // 小框里写动作名（"对话"），不再写 NPC 名字 —— 名字已经在头顶了
+            提示文字.text = StationInteractable.默认名(最近设施.类型);
+
+            // 身侧位置：沿「屏幕右方向」在世界里横着挪一点，高度取肩/胸之间
+            Vector3 侧 = 主相机 != null ? 主相机.transform.right : Vector3.right;
+            侧.y = 0f;
+            if (侧.sqrMagnitude < 0.0001f) 侧 = Vector3.right;
+            侧.Normalize();
+            float 肩高 = Mathf.Clamp(顶 * 0.62f, 1.2f, 2.2f);
+            提示根.transform.position = 位 + 侧 * 身侧距离 + Vector3.up * 肩高;
+        }
+        else
+        {
+            if (名字根 != null && 名字根.activeSelf) 名字根.SetActive(false);
+            提示文字.text = 最近设施.标题;
+            提示根.transform.position = 位 + Vector3.up * 顶;
+        }
+
         if (主相机 != null)
             提示根.transform.rotation = Quaternion.LookRotation(
                 提示根.transform.position - 主相机.transform.position, 主相机.transform.up);
@@ -209,11 +250,46 @@ public class StationInteractor : MonoBehaviour
         float 近 = Vector2.Distance(new Vector2(位.x, 位.z), new Vector2(transform.position.x, transform.position.z));
         float a = Mathf.Clamp01(1.4f - 近 / Mathf.Max(0.1f, 最近设施.交互距离));
         提示文字.color = new Color(提示色.r, 提示色.g, 提示色.b, Mathf.Clamp01(a + 0.25f));
+        if (名字文字 != null) 名字文字.color = new Color(名字色.r, 名字色.g, 名字色.b, Mathf.Clamp01(a + 0.35f));
     }
 
     void 隐藏提示()
     {
         if (提示根 != null && 提示根.activeSelf) 提示根.SetActive(false);
+        if (名字根 != null && 名字根.activeSelf) 名字根.SetActive(false);
+    }
+
+    // 头顶名字：不带框，白字 + 深色描边（亮背景上也看得清）
+    static readonly Color 名字色 = new Color(1f, 0.98f, 0.92f, 1f);
+
+    void 确保名字存在()
+    {
+        if (名字根 != null) return;
+
+        名字根 = new GameObject("StationName", typeof(Canvas));
+        var canvas = 名字根.GetComponent<Canvas>();
+        canvas.renderMode = RenderMode.WorldSpace;
+        canvas.sortingOrder = 199;               // 比「F 对话」小框(200)低一档
+        var rt = 名字根.GetComponent<RectTransform>();
+        rt.sizeDelta = new Vector2(420f, 64f);
+        rt.localScale = Vector3.one * 0.011f;
+
+        var go = new GameObject("名字", typeof(RectTransform));
+        go.transform.SetParent(名字根.transform, false);
+        名字文字 = go.AddComponent<Text>();
+        名字文字.font = 取字体();
+        名字文字.fontSize = 40;
+        名字文字.fontStyle = FontStyle.Bold;
+        名字文字.alignment = TextAnchor.MiddleCenter;
+        名字文字.color = 名字色;
+        名字文字.raycastTarget = false;
+        名字文字.horizontalOverflow = HorizontalWrapMode.Overflow;
+        名字文字.verticalOverflow = VerticalWrapMode.Overflow;
+        拉伸(go.GetComponent<RectTransform>());
+
+        var 描 = go.AddComponent<Outline>();
+        描.effectColor = new Color(0f, 0f, 0f, 0.85f);
+        描.effectDistance = new Vector2(2f, -2f);
     }
 
     // 提示配色（对齐用户给的示意图：深色圆角底 + 亮键帽 + 浅色字）
@@ -236,6 +312,8 @@ public class StationInteractor : MonoBehaviour
         var rt = 提示根.GetComponent<RectTransform>();
         rt.sizeDelta = new Vector2(230f, 56f);
         rt.localScale = Vector3.one * 0.011f;     // 230 × 0.011 ≈ 世界 2.5 米宽
+        // 轴心放**左边缘**：挪到 NPC 身侧时以左边缘对齐，小框就不会压住人（用户要的"身侧"）
+        rt.pivot = new Vector2(0f, 0.5f);
 
         // ---- 底板：圆角深色（就是示意图里「F 对话」那个小框）----
         var 底 = new GameObject("底", typeof(RectTransform));
