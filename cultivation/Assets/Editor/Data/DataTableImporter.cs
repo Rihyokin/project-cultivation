@@ -53,6 +53,8 @@ public static class DataTableImporter
         new TableSpec("境界表",     typeof(RealmDefinition),         null,       null),
         // 坐骑：表头照「被动神通表」来的，属性列同样以「增益」结尾
         new TableSpec("坐骑表",     typeof(MountDefinition),         "增益",     "增益"),
+        // 对话：每行一段对话（同一 npcId 的若干「分段」= 该 NPC 的默认对话；回答可跳转分段；带条件列给任务管理器用）
+        new TableSpec("对话表",     typeof(DialogueDefinition),      null,       null),
         // 「兽宠表」已删 —— 用户决定不要兽宠系统了（战阵真灵取代了它）
     };
 

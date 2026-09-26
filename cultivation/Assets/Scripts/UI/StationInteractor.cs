@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
@@ -89,6 +89,7 @@ public class StationInteractor : MonoBehaviour
 
     // 头顶提示
     Text 提示文字;
+    Text 提示键字;            // ★ 键帽上的字（F / 右键）—— 2026-09-26 合并建筑与 NPC 交互时加的
     GameObject 提示根;
 
     void Awake()
@@ -123,7 +124,7 @@ public class StationInteractor : MonoBehaviour
         找最近设施();
         更新头顶提示();
 
-        if (最近设施 != null && Input.GetKeyDown(交互键))
+        if (最近设施 != null && Input.GetKeyDown(最近设施.取按键(交互键)))
         {
             本次右键已被占用 = true;          // 告诉 NpcTargeting：这帧别锁 NPC
             打开界面(最近设施);
@@ -153,7 +154,9 @@ public class StationInteractor : MonoBehaviour
             var 差 = s.transform.position - 我;
             float 水平 = new Vector2(差.x, 差.z).magnitude;
             if (!s.玩家在范围内(水平, 差.y)) continue;
-            if (水平 < 最近) { 最近 = 水平; 最近设施 = s; }
+            // ★ 用户 2026-09-26：同时进范围时取「**离根节点更近**」的那个（原来比的是水平距离）
+            float 直距 = 差.magnitude;
+            if (直距 < 最近) { 最近 = 直距; 最近设施 = s; }
         }
     }
 
@@ -170,7 +173,7 @@ public class StationInteractor : MonoBehaviour
         if (提示根 == null) return;
 
         提示根.SetActive(true);
-        提示文字.text = "右键  " + 最近设施.标题;
+        // ★ 提示文案跟着"这件东西实际用哪个键"走（原来写死"右键"，建筑改成 F 后就对不上了）`n        提示文字.text = 最近设施.标题;`n        if (提示键字 != null) 提示键字.text = StationInteractable.按键名(最近设施.取按键(交互键));
 
         var 位 = 最近设施.transform.position;
         // 从物件顶上的渲染体算高度，算不出来就用固定值
@@ -200,6 +203,11 @@ public class StationInteractor : MonoBehaviour
         if (提示根 != null && 提示根.activeSelf) 提示根.SetActive(false);
     }
 
+    // 提示配色（对齐用户给的示意图：深色圆角底 + 亮键帽 + 浅色字）
+    static readonly Color 提示底色 = new Color(0.06f, 0.07f, 0.10f, 0.92f);
+    static readonly Color 键底色 = new Color(0.93f, 0.89f, 0.73f, 0.96f);
+    static readonly Color 键字色 = new Color(0.10f, 0.10f, 0.12f, 1f);
+
     void 确保提示存在()
     {
         if (提示根 != null) return;
@@ -213,20 +221,79 @@ public class StationInteractor : MonoBehaviour
         canvas.renderMode = RenderMode.WorldSpace;
         canvas.sortingOrder = 200;
         var rt = 提示根.GetComponent<RectTransform>();
-        rt.sizeDelta = new Vector2(300f, 70f);
-        rt.localScale = Vector3.one * 0.01f;      // 300 × 0.01 = 世界 3 米宽，合适
+        rt.sizeDelta = new Vector2(230f, 56f);
+        rt.localScale = Vector3.one * 0.011f;     // 230 × 0.011 ≈ 世界 2.5 米宽
 
+        // ---- 底板：圆角深色（就是示意图里「F 对话」那个小框）----
+        var 底 = new GameObject("底", typeof(RectTransform));
+        底.transform.SetParent(提示根.transform, false);
+        var 底图 = 底.AddComponent<Image>();
+        底图.sprite = 取圆角(); 底图.type = Image.Type.Sliced;
+        底图.color = 提示底色; 底图.raycastTarget = false;
+        拉伸(底.GetComponent<RectTransform>());
+
+        // ---- 键帽：左边一个圆角亮块，里面写按键 ----
+        var 帽 = new GameObject("键", typeof(RectTransform));
+        帽.transform.SetParent(提示根.transform, false);
+        var 帽图 = 帽.AddComponent<Image>();
+        帽图.sprite = 取圆角(); 帽图.type = Image.Type.Sliced;
+        帽图.color = 键底色; 帽图.raycastTarget = false;
+        var 帽rt = 帽.GetComponent<RectTransform>();
+        帽rt.anchorMin = new Vector2(0f, 0.5f); 帽rt.anchorMax = new Vector2(0f, 0.5f);
+        帽rt.pivot = new Vector2(0f, 0.5f);
+        帽rt.anchoredPosition = new Vector2(7f, 0f);
+        帽rt.sizeDelta = new Vector2(42f, 42f);
+
+        var k = new GameObject("键字", typeof(RectTransform));
+        k.transform.SetParent(帽.transform, false);
+        提示键字 = k.AddComponent<Text>();
+        提示键字.font = 取字体();
+        提示键字.fontSize = 26;
+        提示键字.fontStyle = FontStyle.Bold;
+        提示键字.alignment = TextAnchor.MiddleCenter;
+        提示键字.color = 键字色;
+        提示键字.raycastTarget = false;
+        拉伸(k.GetComponent<RectTransform>());
+
+        // ---- 动作文字：键帽右边 ----
         var t = new GameObject("Text", typeof(RectTransform));
         t.transform.SetParent(提示根.transform, false);
         提示文字 = t.AddComponent<Text>();
         提示文字.font = 取字体();
-        提示文字.fontSize = 30;
-        提示文字.alignment = TextAnchor.MiddleCenter;
+        提示文字.fontSize = 28;
+        提示文字.alignment = TextAnchor.MiddleLeft;
         提示文字.color = 提示色;
         提示文字.raycastTarget = false;
         var trt = t.GetComponent<RectTransform>();
         trt.anchorMin = Vector2.zero; trt.anchorMax = Vector2.one;
-        trt.offsetMin = Vector2.zero; trt.offsetMax = Vector2.zero;
+        trt.offsetMin = new Vector2(58f, 0f); trt.offsetMax = new Vector2(-8f, 0f);
+    }
+
+    static void 拉伸(RectTransform rt)
+    {
+        rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one;
+        rt.offsetMin = Vector2.zero; rt.offsetMax = Vector2.zero;
+    }
+
+    /// <summary>圆角方块 sprite（带 9 宫格 border，缩放不走形）。程序生成一次、所有提示共用</summary>
+    static Sprite 圆角精灵;
+    static Sprite 取圆角()
+    {
+        if (圆角精灵 != null) return 圆角精灵;
+        const int N = 32; const float r = 10f;
+        var tex = new Texture2D(N, N, TextureFormat.RGBA32, false);
+        for (int y = 0; y < N; y++)
+            for (int x = 0; x < N; x++)
+            {
+                float dx = Mathf.Max(0f, Mathf.Max(r - (x + 0.5f), (x + 0.5f) - (N - r)));
+                float dy = Mathf.Max(0f, Mathf.Max(r - (y + 0.5f), (y + 0.5f) - (N - r)));
+                float d = Mathf.Sqrt(dx * dx + dy * dy);
+                tex.SetPixel(x, y, new Color(1f, 1f, 1f, Mathf.Clamp01(r - d + 0.5f)));
+            }
+        tex.Apply();
+        圆角精灵 = Sprite.Create(tex, new Rect(0, 0, N, N), new Vector2(0.5f, 0.5f), 100f, 0,
+            SpriteMeshType.FullRect, new Vector4(r + 2f, r + 2f, r + 2f, r + 2f));
+        return 圆角精灵;
     }
 
     // ================================================================
