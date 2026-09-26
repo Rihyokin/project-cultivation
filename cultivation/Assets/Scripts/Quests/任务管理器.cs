@@ -323,6 +323,14 @@ public class 任务管理器 : MonoBehaviour
                 Debug.Log("[任务] 调度：" + npc.name + " 飞到 " + 阶段.坐标);
                 StartCoroutine(飞过去(npc, 阶段.坐标, 阶段.动作速度, 阶段.动作参数));
                 break;
+            case 任务动作.镜头看目标:
+                Debug.Log("[任务] 调度：镜头对焦 " + (npc != null ? npc.name : "null"));
+                StartCoroutine(镜头对焦(npc != null ? npc.transform : null, 阶段.镜头时长, 阶段.镜头高度));
+                break;
+            case 任务动作.镜头回玩家:
+                Debug.Log("[任务] 调度：镜头回玩家");
+                StartCoroutine(镜头回玩家(阶段.镜头时长, 阶段.镜头高度));
+                break;
             case 任务动作.销毁:
                 Debug.Log("[任务] 调度：销毁 " + npc.name);
                 Destroy(npc.gameObject);
