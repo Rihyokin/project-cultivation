@@ -173,7 +173,9 @@ public class StationInteractor : MonoBehaviour
         if (提示根 == null) return;
 
         提示根.SetActive(true);
-        // ★ 提示文案跟着"这件东西实际用哪个键"走（原来写死"右键"，建筑改成 F 后就对不上了）`n        提示文字.text = 最近设施.标题;`n        if (提示键字 != null) 提示键字.text = StationInteractable.按键名(最近设施.取按键(交互键));
+        // ★ 提示文案跟着"这件东西实际用哪个键"走（原来写死"右键"，建筑改成 F 后就对不上了）
+        提示文字.text = 最近设施.标题;
+        if (提示键字 != null) 提示键字.text = StationInteractable.按键名(最近设施.取按键(交互键));
 
         var 位 = 最近设施.transform.position;
         // 从物件顶上的渲染体算高度，算不出来就用固定值

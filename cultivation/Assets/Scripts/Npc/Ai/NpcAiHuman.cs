@@ -19,9 +19,7 @@ public class NpcAiHuman : NpcAiCombatant
 
     [Tooltip("可对话（后续接对话 / 剧情用）")]
     public bool 可对话 = true;
-
-    [Tooltip("由 NpcDialogue 控制：只用转头就能看住玩家时置 true，屏蔽这里的整体转身")]
-    public bool 禁止身体转向 = false;
+    // 注：「只转头」用的 禁止身体转向 标志在基类 NpcAiBase 上（挡在 转向() 源头，能拦住所有状态的转身）
 
     /// <summary>玩家现在能不能跟它说话</summary>
     public bool 现在可对话

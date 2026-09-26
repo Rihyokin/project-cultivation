@@ -919,6 +919,13 @@ public abstract class NpcAiBase : MonoBehaviour
     [Tooltip("攻击动画播放期间锁死朝向（攻击动作自带转体，AI 边播边转会把手刺歪）")]
     public bool 攻击期间锁定朝向 = true;
 
+    /// <summary>
+    /// **对话模块接管用**：为 true 时 AI 完全不转身体（"只转头看玩家"的场景）。
+    /// 挡在 <see cref="转向"/> 的源头，所以不管当前在待机还是别的状态、谁调的转向，都拦得住。
+    /// </summary>
+    [Tooltip("为 true 时 AI 完全不转身体；对话模块只用转头看玩家时会置 true")]
+    public bool 禁止身体转向 = false;
+
     /// <summary>转向某个方向（水平面内）</summary>
     protected void 转向(Vector3 方向)
     {
@@ -931,6 +938,7 @@ public abstract class NpcAiBase : MonoBehaviour
         //
         // 所以起手那一刻对准目标之后就**锁死朝向**，直到收招回待机才恢复转向。
         // 这也是"攻击动画 + AI 转向"打架时的标准解法。
+        if (禁止身体转向) return;   // ★ 对话模块接管：只用转头，身体一律不动
         if (攻击期间锁定朝向 && 状态 == NpcAiState.攻击) return;
 
         方向.y = 0f;

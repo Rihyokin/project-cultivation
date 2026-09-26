@@ -30,6 +30,9 @@ public class NpcDialogue : MonoBehaviour
     public float 最大偏角 = 70f;
 
     [Header("骨骼")]
+    [Tooltip("模型朝向补偿角。运行时优先取 NpcAiBase.模型朝向补偿（本项目村民=90）；没有 AI 时用这个值")]
+    public float 朝向补偿 = 90f;
+
     [Tooltip("头骨名字关键字，找不到就用备用")]
     public string 头部骨骼关键字 = "Head";
 
@@ -79,10 +82,16 @@ public class NpcDialogue : MonoBehaviour
         return gameObject.name;
     }
 
+    /// <summary>调试用：最近一帧的决策结果（只读）</summary>
+    public string 最近决策 { get; private set; } = "未跑";
+    public int 转头帧数 { get; private set; }
+    public int 转身帧数 { get; private set; }
+    public int 不跑帧数 { get; private set; }
+
     void LateUpdate()
     {
         var 玩家 = 取玩家();
-        if (玩家 == null) { 恢复头(); return; }
+        if (玩家 == null) { 最近决策 = "没有玩家引用"; 不跑帧数++; 恢复头(); return; }
 
         // 战斗中 / 敌对，就不看也不给对话
         // 注：这里**不**看 NpcInstance.IsDead —— 运行时刚实例化的 NPC 气血还没初始化，
@@ -93,6 +102,8 @@ public class NpcDialogue : MonoBehaviour
 
         if (!可看 || 距离 > 看向距离)
         {
+            最近决策 = !可看 ? "不可看" : ("超范围 " + 距离.ToString("F1"));
+            不跑帧数++;
             恢复头();
             置身体转向(true);
             return;
@@ -103,23 +114,27 @@ public class NpcDialogue : MonoBehaviour
         方向.y = 0f;
         if (方向.sqrMagnitude < 0.0001f) { 恢复头(); return; }
 
-        // 当前身体正面在水平面上的偏角：需要的偏角 = 身体正面 → 玩家方向
-        Vector3 身体正面 = transform.forward;
-        身体正面.y = 0f;
-        float 偏角 = Vector3.SignedAngle(身体正面, 方向, Vector3.up);
+        // 需要转多少度才算面向玩家 —— **完全复用项目自己的朝向公式**
+        // （NpcAiBase.转向 就是 `LookRotation(方向) * Euler(0, 模型朝向补偿, 0)`），
+        // 这样头和身体的"正面"认定必然一致，不用去猜模型正面是 +X 还是 +Z。
+        float 补偿 = 朝向补偿;
+        var ai = GetComponent<NpcAiBase>();
+        if (ai != null) 补偿 = ai.模型朝向补偿;
+        Quaternion 面向玩家 = Quaternion.LookRotation(方向.normalized, Vector3.up) * Quaternion.Euler(0f, 补偿, 0f);
+        float 偏角 = Mathf.DeltaAngle(transform.rotation.eulerAngles.y, 面向玩家.eulerAngles.y);
 
         bool 只转头 = 距离 <= 只转头距离 && Mathf.Abs(偏角) <= 最大偏角;
         置身体转向(!只转头);
 
-        if (只转头) 转(方向, 偏角);
-        else 恢复头();
+        if (只转头) { 最近决策 = "只转头 偏角" + 偏角.ToString("F1") + " 距" + 距离.ToString("F1"); 转头帧数++; 转(方向, 偏角); }
+        else { 最近决策 = "转身 偏角" + 偏角.ToString("F1") + " 距" + 距离.ToString("F1"); 转身帧数++; 恢复头(); }
     }
 
-    /// <summary>把 NpcAiHuman 那种「整体转身」按需打开/关掉</summary>
+    /// <summary>把 AI 的整体转身按需打开/关掉（挡在 NpcAiBase.转向 源头，所有调用路径都拦得住）</summary>
     void 置身体转向(bool 开)
     {
-        var 人类 = GetComponent<NpcAiHuman>();
-        if (人类 != null) 人类.禁止身体转向 = !开;
+        var ai = GetComponent<NpcAiBase>();
+        if (ai != null) ai.禁止身体转向 = !开;
     }
 
     void 转(Vector3 水平方向, float 偏角)
