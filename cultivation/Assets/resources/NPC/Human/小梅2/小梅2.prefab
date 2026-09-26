@@ -610,6 +610,8 @@ GameObject:
   - component: {fileID: 3677084793191399377}
   - component: {fileID: 8684718503062367919}
   - component: {fileID: 5817657904106059259}
+  - component: {fileID: 6142142428832017734}
+  - component: {fileID: 1367143181108075750}
   m_Layer: 0
   m_HasEditorInfo: 1
   m_Name: "\u5C0F\u68852"
@@ -740,6 +742,45 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   "\u8865\u507F\u89D2": 90
   "\u6700\u591A\u7B49": 3
+--- !u!114 &6142142428832017734
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1495934401280746123}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 54a86ab6b7f0bc54092d9fa8adbba6c0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  "\u770B\u5411\u8DDD\u79BB": 8
+  "\u53EA\u8F6C\u5934\u8DDD\u79BB": 4.5
+  "\u6700\u5927\u504F\u89D2": 70
+  "\u5934\u90E8\u9AA8\u9ABC\u5173\u952E\u5B57": Head
+  "\u5907\u7528\u9AA8\u9ABC\u5173\u952E\u5B57": Neck
+  "\u4EA4\u4E92\u8DDD\u79BB": 3.5
+  "\u4EA4\u4E92\u952E": 102
+--- !u!114 &1367143181108075750
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1495934401280746123}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e84d490ece7e5f24c9043c80a766b481, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  "\u7C7B\u578B": 4
+  "\u663E\u793A\u540D": "\u5C0F\u68852"
+  "\u4EA4\u4E92\u8DDD\u79BB": 3.5
+  "\u6700\u5927\u9AD8\u5EA6\u5DEE": 3
+  "\u4EA4\u4E92\u952E\u8986\u76D6": 102
+  "\u663E\u793A\u9760\u8FD1\u63D0\u793A": 1
+  "\u63D0\u793A\u62AC\u9AD8": 0.6
+  "\u754C\u9762\u9884\u5236\u4F53": {fileID: 0}
 --- !u!1 &1737287021819748453
 GameObject:
   m_ObjectHideFlags: 0

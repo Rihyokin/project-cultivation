@@ -20,6 +20,9 @@ public class NpcAiHuman : NpcAiCombatant
     [Tooltip("可对话（后续接对话 / 剧情用）")]
     public bool 可对话 = true;
 
+    [Tooltip("由 NpcDialogue 控制：只用转头就能看住玩家时置 true，屏蔽这里的整体转身")]
+    public bool 禁止身体转向 = false;
+
     /// <summary>玩家现在能不能跟它说话</summary>
     public bool 现在可对话
         => 可对话 && !视玩家为敌 && !已交战 && 玩家生命 != null && !玩家生命.已死亡;
@@ -64,6 +67,8 @@ public class NpcAiHuman : NpcAiCombatant
         base.执行待机();
 
         // 友好状态下，玩家走近会转过来看着（为后续对话做铺垫）
+        // 但对话模块只用转头就能看住玩家时，这里不许抢着整体转身
+        if (禁止身体转向) return;
         if (!视玩家为敌 && 玩家生命 != null && 到玩家距离 <= 有效索敌范围)
             朝向玩家();
     }

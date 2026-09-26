@@ -1823,6 +1823,8 @@ GameObject:
   - component: {fileID: 2991571507589269542}
   - component: {fileID: 9104134082235079300}
   - component: {fileID: 7631710870741402179}
+  - component: {fileID: 6929008615318449280}
+  - component: {fileID: 1112521478356908173}
   m_Layer: 0
   m_HasEditorInfo: 1
   m_Name: LaoTou_04
@@ -1927,6 +1929,7 @@ MonoBehaviour:
   "\u5B9A\u4E49": {fileID: 11400000, guid: 8b3878aaf32f5b64184e4bf031e1967d, type: 2}
   "\u6BCF\u6B21\u53D7\u51FB\u964D\u597D\u611F": 20
   "\u597D\u611F\u5EA6\u8303\u56F4": {x: -100, y: 100}
+  "\u65E0\u654C": 0
   "\u5F53\u524D\u6C14\u8840": 700
   "\u5DF2\u6B7B\u4EA1": 0
   "\u8FD0\u884C\u597D\u611F\u5EA6": 0
@@ -1979,3 +1982,42 @@ CapsuleCollider:
   m_Height: 2.0390928
   m_Direction: 1
   m_Center: {x: -0.000013619661, y: 1.484923, z: -0.06126876}
+--- !u!114 &6929008615318449280
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 100096}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 54a86ab6b7f0bc54092d9fa8adbba6c0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  "\u770B\u5411\u8DDD\u79BB": 8
+  "\u53EA\u8F6C\u5934\u8DDD\u79BB": 4.5
+  "\u6700\u5927\u504F\u89D2": 70
+  "\u5934\u90E8\u9AA8\u9ABC\u5173\u952E\u5B57": Head
+  "\u5907\u7528\u9AA8\u9ABC\u5173\u952E\u5B57": Neck
+  "\u4EA4\u4E92\u8DDD\u79BB": 3.5
+  "\u4EA4\u4E92\u952E": 102
+--- !u!114 &1112521478356908173
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 100096}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e84d490ece7e5f24c9043c80a766b481, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  "\u7C7B\u578B": 4
+  "\u663E\u793A\u540D": LaoTou_04
+  "\u4EA4\u4E92\u8DDD\u79BB": 3.5
+  "\u6700\u5927\u9AD8\u5EA6\u5DEE": 3
+  "\u4EA4\u4E92\u952E\u8986\u76D6": 102
+  "\u663E\u793A\u9760\u8FD1\u63D0\u793A": 1
+  "\u63D0\u793A\u62AC\u9AD8": 0.6
+  "\u754C\u9762\u9884\u5236\u4F53": {fileID: 0}
