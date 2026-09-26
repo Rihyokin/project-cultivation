@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dff51ec55074de74ea2fbf0299cf5f38, type: 3}
+  m_Name: dlg_farewell_xiaomei3
+  m_EditorClassIdentifier: 
+  id: dlg_farewell_xiaomei3
+  npcId: npc_xiaomei_03
+  "\u5206\u6BB5": 1
+  "\u8BF4\u8BDD\u4EBA": 
+  "\u6587\u672C": "\u6211\u7ED9\u4F60\u6458\u7684\u82B1\uFF0C\u4F60\u5E26\u4E00\u6735\u8D70\u5427\u3002\u540E\u5C71\u7684\u82B1\uFF0C\u6211\u4E5F\u7ED9\u4F60\u7559\u7740\u3002"
+  "\u7ACB\u7ED8": "\u7ACB\u7ED8/\u5C0F\u6885"
+  "\u73A9\u5BB6\u7ACB\u7ED8": 
+  "\u56DE\u7B541": "\u597D\uFF0C\u6211\u5E26\u7740"
+  "\u56DE\u7B542": "\u7B49\u6211\u56DE\u6765"
+  "\u56DE\u7B543": 
+  "\u8DF3\u8F6C1": 0
+  "\u8DF3\u8F6C2": 0
+  "\u8DF3\u8F6C3": 0
+  "\u9700\u8981\u6807\u8BB0": "q_\u51E1\u5C18_\u6599\u7406\u4E2D"
+  "\u6392\u9664\u6807\u8BB0": 
+  "\u4F18\u5148": 10
+  "\u60C5\u7EEA": 
+  "\u60C5\u7EEA\u5F3A\u5EA6": 1
+  "\u89E6\u53D1\u4EFB\u52A1": 
+  "\u5B8C\u6210\u4EFB\u52A1": 
