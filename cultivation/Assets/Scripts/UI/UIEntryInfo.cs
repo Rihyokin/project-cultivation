@@ -56,7 +56,12 @@ public class UIEntryInfo : MonoBehaviour
 
     void OnActionClicked()
     {
-        if (Current is PassiveDivineAbility p && data != null)
+        // ★ 可使用物品：交给 物品使用器（用掉会从背包扣一个，Changed 事件会刷新列表）
+        if (Current is ItemDefinition 物品 && 物品.可使用 && data != null)
+        {
+            物品使用器.使用(物品, data);
+        }
+        else if (Current is PassiveDivineAbility p && data != null)
             data.TogglePassive(p);          // 会触发 Changed，列表跟着刷新
         else if (Current is MountDefinition m && data != null)
         {
@@ -123,10 +128,26 @@ public class UIEntryInfo : MonoBehaviour
 
         var passive = Current as PassiveDivineAbility;
         var mount = Current as MountDefinition;
+        var 物品 = Current as ItemDefinition;
+        bool 是可用物品 = 物品 != null && 物品.可使用;
 
-        bool show = data != null && (passive != null || mount != null);
+        bool show = data != null && (passive != null || mount != null || 是可用物品);
         actionButton.gameObject.SetActive(show);
         if (!show) return;
+
+        actionButton.interactable = true;      // 下面各分支按需再关掉
+
+        // ---- 可使用物品：使用（材料/提交物不会走到这里，它们 可使用=false）----
+        if (是可用物品)
+        {
+            bool 能用 = 物品使用器.可使用(物品, data);
+            if (actionLabel != null) actionLabel.text = 能用 ? "使用" : "已获得";
+            actionButton.image.color = 能用
+                ? new Color(0.40f, 0.70f, 0.45f)      // 能用 → 绿
+                : new Color(0.45f, 0.45f, 0.45f);     // 已经学过了 → 灰
+            actionButton.interactable = 能用;
+            return;
+        }
 
         // ---- 坐骑：装备 / 取消装备 ----
         if (mount != null)

@@ -57,8 +57,15 @@ public class UIPanelData : MonoBehaviour
     public List<PassiveDivineAbility> 已停用被动 = new List<PassiveDivineAbility>();
 
     [Header("已学会的功法")]
-    [Tooltip("玩家已经学会的功法。转修功法只能在这几门里选。默认 = 目前做好的功法")]
+    [Tooltip("玩家已经学会的功法。转修功法只能在这几门里选。**新存档是空的**，靠在背包里「使用」秘籍类物品学会")]
     public List<GongFaDefinition> 已学功法 = new List<GongFaDefinition>();
+
+    [Header("已获得的能力（新存档为空，靠物品学会/获得；都会存进存档）")]
+    [Tooltip("已经获得的主动神通。没获得的：神通页不显示、也不能装备")]
+    public List<ActiveDivineAbility> 已获得主动神通 = new List<ActiveDivineAbility>();
+
+    [Tooltip("已经获得的被动神通。没获得的不参与生效（和「停用」是两回事：没获得=还没有，停用=有但关着）")]
+    public List<PassiveDivineAbility> 已获得被动神通 = new List<PassiveDivineAbility>();
 
     [Header("待装备")]
     [Tooltip("点了「启用」之后、等待玩家点一个空槽放入的主动神通。null 表示没有待装备")]
@@ -109,10 +116,78 @@ public class UIPanelData : MonoBehaviour
             if (g != null && !已学功法.Contains(g)) 已学功法.Add(g);
         RaiseChanged();
     }
+
+    // ============================================================ 能力「是否已获得」
+
+    /// <summary>这门主动神通获得了吗</summary>
+    public bool 已获得主动(ActiveDivineAbility a)
+        => a != null && 已获得主动神通 != null && 已获得主动神通.Contains(a);
+
+    /// <summary>获得一门主动神通（已经有了返回 false —— 用户要求"无法重复习得"）</summary>
+    public bool 获得主动(ActiveDivineAbility a)
+    {
+        if (a == null) return false;
+        if (已获得主动神通 == null) 已获得主动神通 = new List<ActiveDivineAbility>();
+        if (已获得主动神通.Contains(a)) return false;
+        已获得主动神通.Add(a);
+        RaiseChanged();
+        return true;
+    }
+
+    /// <summary>这门被动神通获得了吗</summary>
+    public bool 已获得被动(PassiveDivineAbility p)
+        => p != null && 已获得被动神通 != null && 已获得被动神通.Contains(p);
+
+    /// <summary>获得一门被动神通。获得即启用（从"已停用"里摘掉）</summary>
+    public bool 获得被动(PassiveDivineAbility p)
+    {
+        if (p == null) return false;
+        if (已获得被动神通 == null) 已获得被动神通 = new List<PassiveDivineAbility>();
+        if (已获得被动神通.Contains(p)) return false;
+        已获得被动神通.Add(p);
+        if (已停用被动 != null) 已停用被动.Remove(p);
+        RaiseChanged();
+        return true;
+    }
+
+    // ============================================================ 背包数量（同一件物品有 N 个 = N 条）
+
+    /// <summary>背包里有几个</summary>
+    public int 物品数量(ItemDefinition 物品)
+    {
+        if (物品 == null || 物品 == null) return 0;
+        if (this.物品 == null) return 0;
+        int n = 0;
+        foreach (var it in this.物品) if (it == 物品) n++;
+        return n;
+    }
+
+    /// <summary>给物品（任务奖励、使用器都走这里）</summary>
+    public void 给物品(ItemDefinition 物品, int 数量 = 1)
+    {
+        if (物品 == null || 数量 <= 0) return;
+        if (this.物品 == null) this.物品 = new List<ItemDefinition>();
+        for (int i = 0; i < 数量; i++) this.物品.Add(物品);
+        RaiseChanged();
+    }
+
+    /// <summary>扣物品（不够就返回 false，什么都不扣）</summary>
+    public bool 移除物品(ItemDefinition 物品, int 数量 = 1)
+    {
+        if (物品 == null || 数量 <= 0) return false;
+        if (this.物品 == null || 物品数量(物品) < 数量) return false;
+        for (int i = 0; i < 数量; i++) this.物品.Remove(物品);
+        RaiseChanged();
+        return true;
+    }
+
     public void EnsureLists()
     {
         if (物品 == null) 物品 = new List<ItemDefinition>();
         if (神通 == null) 神通 = new List<DivineAbilityDefinition>();
+        if (已获得主动神通 == null) 已获得主动神通 = new List<ActiveDivineAbility>();
+        if (已获得被动神通 == null) 已获得被动神通 = new List<PassiveDivineAbility>();
+        if (已学功法 == null) 已学功法 = new List<GongFaDefinition>();
         if (法宝 == null) 法宝 = new List<TreasureDefinition>();
         if (灵阵 == null) 灵阵 = new List<SpiritArrayDefinition>();
         if (坐骑 == null) 坐骑 = new List<MountDefinition>();
@@ -629,7 +704,20 @@ public class UIPanelData : MonoBehaviour
     }
 
     public List<IPanelEntry> GetItems()        { return ToEntries(物品); }
-    public List<IPanelEntry> GetAbilities()    { return ToEntries(神通); }
+
+    /// <summary>神通页只列**已经获得的**（没获得的要用物品学 —— 用户 2026-09-26 定的）</summary>
+    public List<IPanelEntry> GetAbilities()
+    {
+        var 出 = new List<IPanelEntry>();
+        if (神通 == null) return 出;
+        foreach (var a in 神通)
+        {
+            if (a == null) continue;
+            if (a is ActiveDivineAbility act) { if (已获得主动(act)) 出.Add(act); }
+            else if (a is PassiveDivineAbility p) { if (已获得被动(p)) 出.Add(p); }
+        }
+        return 出;
+    }
     public List<IPanelEntry> GetTreasures()    { return ToEntries(法宝); }
     public List<IPanelEntry> GetSpiritArrays() { return ToEntries(灵阵); }
 
@@ -662,7 +750,7 @@ public class UIPanelData : MonoBehaviour
         foreach (var a in 神通)
         {
             if (a == null) continue;
-            if (a is PassiveDivineAbility p && IsPassiveEnabled(p)) list.Add(p);
+            if (a is PassiveDivineAbility p && 已获得被动(p) && IsPassiveEnabled(p)) list.Add(p);
         }
         return list;
     }
@@ -673,7 +761,7 @@ public class UIPanelData : MonoBehaviour
         var list = new List<PassiveDivineAbility>();
         if (神通 == null) return list;
         foreach (var a in 神通)
-            if (a is PassiveDivineAbility p && IsPassiveEnabled(p)) list.Add(p);
+            if (a is PassiveDivineAbility p && 已获得被动(p) && IsPassiveEnabled(p)) list.Add(p);
         return list;
     }
 

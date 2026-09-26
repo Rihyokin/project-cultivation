@@ -502,17 +502,13 @@ public static class DataTableImporter
             var stats = AssetDatabase.LoadAssetAtPath<PlayerStatsDefinition>("Assets/DemoData/PlayerStats_Demo.asset");
             if (stats != null) data.玩家属性 = stats;
         }
-        if (data.当前功法 == null)
-        {
-            // 按「玩家实际在用的普攻方法」反查对应的功法，而不是按名字排序取第一个
-            data.当前功法 = 找当前功法();
-        }
+        // ★ 用户 2026-09-26：主角不再是"天生带着功法"。当前功法留空，等玩家在背包里
+        //   「使用」秘籍类物品学会之后，学功法效果会把它设为当前修炼（见 学功法效果.使用）。
+        //   所以这里**不再自动指定**。（`找当前功法()` 保留给调试/其它工具用）
 
-        // 主动技能槽：前两个主动神通 + 第一个灵阵 + 第一个法宝
+        // 主动技能槽：**全部空着**（原来是"前两个主动神通 + 灵阵 + 法宝"，
+        // 那是"天生全会"的旧口径；现在主动神通要靠物品获得、自己装备）
         data.主动技能 = new List<UnityEngine.Object>();
-        foreach (var a in LoadAll<ActiveDivineAbility>()) { if (data.主动技能.Count < 2) data.主动技能.Add(a); }
-        var arr = LoadAll<SpiritArrayDefinition>(); if (arr.Count > 0) data.主动技能.Add(arr[0]);
-        var tre = LoadAll<TreasureDefinition>(); if (tre.Count > 0) data.主动技能.Add(tre[0]);
         while (data.主动技能.Count < 6) data.主动技能.Add(null);
 
         EditorUtility.SetDirty(data);

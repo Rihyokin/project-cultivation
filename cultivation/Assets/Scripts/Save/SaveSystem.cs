@@ -186,6 +186,20 @@ public static class SaveSystem
                     }
                     if (还原.Count > 0) 面板.已学功法 = 还原;
                 }
+
+                // ★ 已获得的能力：**以存档为准**（新档就是空的 —— 用户要求"学了才有"）
+                面板.EnsureLists();
+                面板.已获得主动神通 = new System.Collections.Generic.List<ActiveDivineAbility>();
+                if (数据.已获得主动神通 != null)
+                    foreach (var id in 数据.已获得主动神通)
+                        foreach (var a in 面板.神通)
+                            if (a is ActiveDivineAbility act && act.神通id == id && !面板.已获得主动(act)) 面板.已获得主动神通.Add(act);
+                面板.已获得被动神通 = new System.Collections.Generic.List<PassiveDivineAbility>();
+                if (数据.已获得被动神通 != null)
+                    foreach (var id in 数据.已获得被动神通)
+                        foreach (var a in 面板.神通)
+                            if (a is PassiveDivineAbility ps && ps.神通id == id && !面板.已获得被动(ps)) 面板.已获得被动神通.Add(ps);
+
                 面板.RaiseChanged();
             }
 
@@ -271,6 +285,16 @@ public static class SaveSystem
                 if (面板.已学功法 != null)
                     foreach (var g in 面板.已学功法)
                         if (g != null) 数据.已学功法.Add(g.功法id);
+
+                // ★ 已获得的能力（主动 / 被动神通）
+                数据.已获得主动神通.Clear();
+                if (面板.已获得主动神通 != null)
+                    foreach (var a in 面板.已获得主动神通)
+                        if (a != null) 数据.已获得主动神通.Add(a.神通id);
+                数据.已获得被动神通.Clear();
+                if (面板.已获得被动神通 != null)
+                    foreach (var a in 面板.已获得被动神通)
+                        if (a != null) 数据.已获得被动神通.Add(a.神通id);
             }
         }
 

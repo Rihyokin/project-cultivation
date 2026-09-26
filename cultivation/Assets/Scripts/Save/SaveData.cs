@@ -12,7 +12,7 @@ using UnityEngine;
 [Serializable]
 public class SaveData
 {
-    public const int 当前版本 = 3;   // 2：加了修炼系统（总灵气/修炼次数/已学功法）；3：加了战阵站位
+    public const int 当前版本 = 4;   // 2：加了修炼系统（总灵气/修炼次数/已学功法）；3：加了战阵站位；4：加了「已获得的能力」
 
     [Header("身份")]
     public int 版本 = 当前版本;
@@ -47,6 +47,13 @@ public class SaveData
 
     [Tooltip("已经学会的功法 id。转修功法只能在这几门里选")]
     public List<string> 已学功法 = new List<string>();
+
+    [Header("已获得的能力（用户 2026-09-26：新档不是天生全会，用物品学会/获得）")]
+    [Tooltip("已经获得的主动神通 id")]
+    public List<string> 已获得主动神通 = new List<string>();
+
+    [Tooltip("已经获得的被动神通 id")]
+    public List<string> 已获得被动神通 = new List<string>();
 
     [Header("战阵")]
     [Tooltip("战阵站位：固定 9 个格子的真灵 id，空位写空字符串。读档时按 id 还原")]

@@ -40,6 +40,7 @@ public class PlayerCombatStats : MonoBehaviour, ICombatStats
 
     AttributeSet 汇总;
     PlayerCultivation 修炼;
+    玩家临时增益 临时增益;
 
     /// <summary>当前汇总后的属性表（只读）</summary>
     public AttributeSet 当前属性
@@ -129,6 +130,13 @@ public class PlayerCombatStats : MonoBehaviour, ICombatStats
             正常.Add(当前功法.GetTotalBonus(功法等级));
 
         汇总 = 使用调试数值 ? new AttributeSet(调试数值) : 正常;
+
+        // ★ 临时增益（丹药之类）最后叠上去：加在汇总上，**不改任何数据资产**
+        if (!使用调试数值)
+        {
+            if (临时增益 == null) 临时增益 = GetComponent<玩家临时增益>();
+            if (临时增益 != null) 临时增益.应用到(汇总);
+        }
 
         if (打印汇总结果)
             Debug.Log("[PlayerCombatStats] 汇总属性：" + 汇总.ToReadableString(), this);

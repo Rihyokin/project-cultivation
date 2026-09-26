@@ -1,0 +1,16 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5ca199e461bb51242973d59a0ad89e7d, type: 3}
+  m_Name: "\u6548\u679C_\u5B66\u529F\u6CD5_gongfa_qingyun_jianjue"
+  m_EditorClassIdentifier: 
+  "\u8BF4\u660E": "\u4F7F\u7528\u540E\u5B66\u4F1A\u529F\u6CD5\u300C\u9752\u4E91\u5251\u8BC0\u300D\u3002"
+  "\u529F\u6CD5": {fileID: 11400000, guid: 1ffeb54e646a6c943b26b5169db26e80, type: 2}

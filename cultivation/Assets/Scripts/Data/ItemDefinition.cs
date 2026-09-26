@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 /// <summary>
 /// 物品父类。对应 lore/物品父类设定.txt：
@@ -28,6 +28,13 @@ public class ItemDefinition : ScriptableObject, IPanelEntry
 
     [Tooltip("品阶，用于列表着色/排序")]
     public QualityTier 品阶 = QualityTier.凡品;
+
+    [Header("能不能用（用户 2026-09-26 定：物品只分能用的和不能用的）")]
+    [Tooltip("勾上 = 背包页会多出一个「使用」按钮。材料 / 提交物**不要勾**")]
+    public bool 可使用 = false;
+
+    [Tooltip("使用效果资产（学功法 / 学主动神通 / 学被动神通 / 属性增益…）。勾了可使用却没配效果 → 用不了")]
+    public 物品使用效果 使用效果;
 
     // ---- IPanelEntry ----
     public string DisplayName => string.IsNullOrEmpty(物品名) ? name : 物品名;

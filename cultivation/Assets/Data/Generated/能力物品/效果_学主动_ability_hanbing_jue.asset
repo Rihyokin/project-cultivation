@@ -1,0 +1,16 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e328b361adf8bd3489c0c424c5a3979f, type: 3}
+  m_Name: "\u6548\u679C_\u5B66\u4E3B\u52A8_ability_hanbing_jue"
+  m_EditorClassIdentifier: 
+  "\u8BF4\u660E": "\u4F7F\u7528\u540E\u83B7\u5F97\u4E3B\u52A8\u795E\u901A\u300C\u5BD2\u51B0\u8BC0\u300D\u3002"
+  "\u795E\u901A": {fileID: 11400000, guid: 225ce4af1efca1e449a0d8af78c74e2b, type: 2}
