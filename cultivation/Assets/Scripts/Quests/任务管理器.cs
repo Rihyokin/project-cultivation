@@ -40,6 +40,9 @@ public class 任务管理器 : MonoBehaviour
     public float 检查间隔 = 0.25f;
 
     readonly Dictionary<string, int> 当前阶段 = new Dictionary<string, int>();
+
+    [Tooltip("演出用的等待条件靠它计时：任务id → 这一阶段是什么时候开始的")]
+    readonly Dictionary<string, float> 阶段开始时间 = new Dictionary<string, float>();
     readonly HashSet<string> 已完成任务 = new HashSet<string>();
     readonly List<NpcInstance> 已订阅 = new List<NpcInstance>();
     float 计时;
@@ -111,6 +114,7 @@ public class 任务管理器 : MonoBehaviour
     void 进入阶段(string 任务id, QuestDefinition 阶段)
     {
         当前阶段[任务id] = 阶段.阶段;
+        阶段开始时间[任务id] = Time.time;      // ★ 「等待秒数」条件从这一刻开始计时
         对话标记.添加一批(阶段.接取加标记);
         执行动作(阶段);
         阶段开始?.Invoke(阶段);
@@ -185,6 +189,14 @@ public class 任务管理器 : MonoBehaviour
                 case 任务条件.无:
                     完成当前阶段(任务id);
                     break;
+                case 任务条件.等待秒数:
+                    {
+                        // ★ 演出用：进这一阶段后等 等待秒 就自动完成（"停留2s""等候60s"）
+                        float 起;
+                        if (阶段开始时间.TryGetValue(任务id, out 起) && Time.time - 起 >= 阶段.等待秒)
+                            完成当前阶段(任务id);
+                        break;
+                    }
                 case 任务条件.提交物品:
                     {
                         var 物品 = db.找物品(阶段.物品id);
