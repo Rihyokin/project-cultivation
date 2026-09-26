@@ -7,7 +7,9 @@ using System.IO;
 /// <summary>
 /// 【约定】改 UI / 角色这类"通用装配"时，必须同步到**所有实际游玩场景**。
 ///
-/// 目前实际游玩场景 = 3C_Testbed / Sect / Demon-Suppressing Tower（见 <see cref="游玩场景"/>）。
+/// 目前实际游玩场景 = 3C_Testbed / Sect / Demon-Suppressing Tower / **village**（见 <see cref="游玩场景"/>）。
+/// （village 是 2026-09-26 新建的村庄场景，一开始只有场景物件、没有角色和 UI，
+///   所以加进这张表里一起同步。）
 ///
 /// 实现要诀：**不能用 Instantiate 复制**（那样副本里的引用还指向源场景的物体 ✗）。
 /// 正确做法是「复制一份源场景 → 附加打开 → `MoveGameObjectToScene` 把根物体搬过去」——
@@ -22,6 +24,7 @@ public static class SceneRigSyncer
         "Assets/Scenes/3C_Testbed.scene",
         "Assets/Scenes/Sect.scene",
         "Assets/Scenes/Demon-Suppressing Tower.scene",
+        "Assets/Scenes/village.scene",
     };
 
     /// <summary>通用装配的根物体。平行光不在内 —— 各场景的氛围各自保留。</summary>

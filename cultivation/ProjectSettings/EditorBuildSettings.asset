@@ -20,6 +20,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Demon-Suppressing Tower.scene
     guid: efe7e902244b5a9469603231fe28053a
+  - enabled: 1
+    path: Assets/Scenes/village.scene
+    guid: 5ef9a35ced7e33a42a0c05fdf2d2632c
   m_BuildProfiles: []
   m_configObjects: {}
   m_SlimFeaturesWeixinMiniGame:
