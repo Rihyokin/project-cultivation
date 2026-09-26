@@ -173,6 +173,14 @@ public class 任务管理器 : MonoBehaviour
     void Update()
     {
         计时 += Time.deltaTime;
+
+        // ★ 镜头兜底：接管超过时限还没交还（多半是演出协程被切场景/销毁打断）→ 自己还回去，
+        //   否则 TopDownCamera 会被永久关着，玩家再也不能操作视角 ✗
+        if (被停的相机脚本.Count > 0 && 镜头兜底交还时间 > 0f && Time.time > 镜头兜底交还时间)
+        {
+            Debug.LogWarning("[任务] 镜头超时兜底交还（演出协程可能被打断了）");
+            交还相机();
+        }
         if (计时 < 检查间隔) return;
         计时 = 0f;
 
@@ -401,6 +409,12 @@ public class 任务管理器 : MonoBehaviour
 
     readonly System.Collections.Generic.List<Behaviour> 被停的相机脚本 = new System.Collections.Generic.List<Behaviour>();
 
+    [Tooltip("镜头兜底交还的时限（秒）：接管后最多霸占这么久，超时自动还给跟随脚本。\n" +
+             "防的是「演出协程被打断（切场景 / 对象销毁 / 异常）→ 镜头一直被劫持」这种死法")]
+    public float 镜头兜底上限 = 30f;
+
+    float 镜头兜底交还时间 = -1f;
+
     void 接管相机()
     {
         if (被停的相机脚本.Count > 0) return;
@@ -412,7 +426,11 @@ public class 任务管理器 : MonoBehaviour
             string n = b.GetType().Name;
             if (n.Contains("TopDownCamera") || n.Contains("CameraZoom")) { b.enabled = false; 被停的相机脚本.Add(b); }
         }
-        if (被停的相机脚本.Count > 0) Debug.Log("[任务] 镜头接管：停了 " + 被停的相机脚本.Count + " 个跟随脚本");
+        if (被停的相机脚本.Count > 0)
+        {
+            镜头兜底交还时间 = Time.time + Mathf.Max(1f, 镜头兜底上限);
+            Debug.Log("[任务] 镜头接管：停了 " + 被停的相机脚本.Count + " 个跟随脚本（兜底 " + 镜头兜底上限 + "s）");
+        }
     }
 
     void 交还相机()
@@ -420,6 +438,7 @@ public class 任务管理器 : MonoBehaviour
         foreach (var b in 被停的相机脚本) if (b != null) b.enabled = true;
         if (被停的相机脚本.Count > 0) Debug.Log("[任务] 镜头交还：" + 被停的相机脚本.Count + " 个跟随脚本恢复");
         被停的相机脚本.Clear();
+        镜头兜底交还时间 = -1f;
     }
 
     /// <summary>把镜头平滑推到某个目标身上（停在它的斜后方，略俯视）</summary>
