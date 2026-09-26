@@ -56,6 +56,7 @@ public static class DataTableImporter
         // 对话：每行一段对话（同一 npcId 的若干「分段」= 该 NPC 的默认对话；回答可跳转分段；带条件列给任务管理器用）
         new TableSpec("对话表",     typeof(DialogueDefinition),      null,       null),
         new TableSpec("任务表",     typeof(QuestDefinition),         null,       null),
+        new TableSpec("外观表",     typeof(AppearanceDefinition),    null,       null),
         // 「兽宠表」已删 —— 用户决定不要兽宠系统了（战阵真灵取代了它）
     };
 

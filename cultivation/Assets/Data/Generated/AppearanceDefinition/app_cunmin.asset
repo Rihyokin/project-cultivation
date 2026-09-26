@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b917991720ffd9c4ea252c37a631ef3e, type: 3}
-  m_Name: "\u5916\u89C2_app_cunmin"
+  m_Name: app_cunmin
   m_EditorClassIdentifier: 
   id: app_cunmin
   "\u5916\u89C2\u540D": "\u6751\u4E2D\u5C11\u5E74"

@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: "\u5916\u89C2\u5E93"
   m_EditorClassIdentifier: 
   "\u5168\u90E8":
-  - {fileID: 11400000, guid: 9516b0bb8cbed2f4089b82dedca3a54b, type: 2}
-  - {fileID: 11400000, guid: 15f435efd69590843a7bd17242eb5e10, type: 2}
+  - {fileID: 11400000, guid: ab166127f3776344fb91cb3c8f3f5c46, type: 2}
+  - {fileID: 11400000, guid: 6039a7e3098df43489e881ae2132c589, type: 2}
