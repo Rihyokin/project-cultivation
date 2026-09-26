@@ -216,8 +216,11 @@ public static class VillageNatureBuilder
         建院门(根.transform, 报告);
         撒树(根.transform, 报告);
         撒灌木(根.transform, 报告);
-        建空气墙(根.transform, 报告);
         补场景碰撞体(报告);          // ★ 给用户手摆的 24 个建筑/道具补碰撞体（幂等）
+
+        // 空气墙**不再程序生成**（用户 2026-09-26：「你自己生成的这个空气墙有点不是我想要的，
+        // 弄个空气墙预制体放在场景中，就是一个 cube，我自己来摆」）→ 见 Assets/Prefabs/空气墙.prefab
+        // 与 Assets/Scripts/Core/AirWall.cs
 
         EditorSceneManager.MarkSceneDirty(场景);
         AssetDatabase.SaveAssets();
@@ -968,77 +971,6 @@ public static class VillageNatureBuilder
         m.SetFloat("_Glossiness", 0.08f);
         AssetDatabase.CreateAsset(m, 资产目录 + "/" + 名 + ".mat");
         return m;
-    }
-
-    /// <summary>
-    /// **空气墙轮廓**（世界 XZ，闭合折线，顺时针）。
-    ///
-    /// 依据用户 2026-09-26 在 Scene 视图里画的黄圈：把**村子本体 + 大殿院子 + 东边那片林子**围起来，
-    /// 而把**农田、石桥、水车、河道上游**留在墙外（和图上一致）。
-    /// 标定基准：院墙 X[-18,20] Z[33,72]、大殿 (2.3,57)、河流/桥 (-37,17)。
-    ///
-    /// 想调就改这一串坐标（顺序 = 顺时针一圈，程序会自动首尾相连）。
-    /// </summary>
-    static readonly Vector2[] 空气墙轮廓 =
-    {
-        new Vector2(-16f,  74f),   // 北 · 院墙西侧外
-        new Vector2( 12f,  74f),   // 北
-        new Vector2( 27f,  58f),
-        new Vector2( 30f,  40f),
-        new Vector2( 44f,  33f),
-        new Vector2( 60f,  14f),   // 东 · 伸进东边林子
-        new Vector2( 60f,  -6f),
-        new Vector2( 46f, -18f),
-        new Vector2( 32f, -22f),
-        new Vector2( 22f, -14f),
-        new Vector2( 10f, -20f),
-        new Vector2(  0f, -32f),   // 南
-        new Vector2(-14f, -46f),   // 南西 · 村口草屋南侧（村门就在这儿）
-        new Vector2(-30f, -42f),
-        new Vector2(-34f, -12f),   // 西 · 西侧庑房外
-        new Vector2(-28f,  20f),
-        new Vector2(-22f,  50f),
-    };
-
-    // ============================================================ 空气墙
-
-    /// <summary>
-    /// 沿 <see cref="空气墙轮廓"/> 拉一圈**隐形墙**（照 3C_Testbed 的 `Boundary` 套路：
-    /// 只有 BoxCollider、**没有渲染器**）。
-    ///
-    /// 每条边只放**一个**拉长的盒子（不是像 Boundary 那样每 1.5m 一段）—— 边是直的，一段就够，
-    /// 省掉几十个物体。盒子高 16m（`御风 2.4m`、`坐骑最高 5.64m`，都拦得住）。
-    ///
-    /// 玩家想出去就得从这里以外绕 —— 所以**农田 / 石桥 / 水车 在墙外，暂时进不去**（和用户画的图一致）。
-    /// </summary>
-    static void 建空气墙(Transform 父, System.Text.StringBuilder 报告)
-    {
-        var 组 = new GameObject("空气墙").transform;
-        组.SetParent(父, false);
-
-        const float 厚 = 1.0f, 墙高 = 16f, 埋深 = 2f;   // 盒子从 y=-2 到 y=14
-        int 段 = 0; float 总长 = 0f;
-
-        for (int i = 0; i < 空气墙轮廓.Length; i++)
-        {
-            var a = 空气墙轮廓[i];
-            var b = 空气墙轮廓[(i + 1) % 空气墙轮廓.Length];
-            float 长 = Vector2.Distance(a, b);
-            if (长 < 0.5f) continue;
-
-            var 中点 = (a + b) * 0.5f;
-            var 方向 = (b - a) / 长;
-
-            var go = new GameObject("空气墙段_" + i.ToString("00"));
-            go.transform.SetParent(组, false);
-            go.transform.position = new Vector3(中点.x, -埋深 + 墙高 * 0.5f, 中点.y);
-            go.transform.rotation = Quaternion.LookRotation(new Vector3(方向.x, 0f, 方向.y), Vector3.up);
-            var box = go.AddComponent<BoxCollider>();
-            box.size = new Vector3(厚, 墙高, 长);     // 局部 Z = 走向
-            box.center = Vector3.zero;
-            段++; 总长 += 长;
-        }
-        报告.AppendLine("  空气墙：" + 段 + " 段隐形墙（周长 " + 总长.ToString("F0") + "m，高 " + 墙高 + "m、无渲染器）");
     }
 
     // ============================================================ 给已有物件补碰撞体
