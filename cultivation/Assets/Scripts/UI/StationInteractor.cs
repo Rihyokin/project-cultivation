@@ -118,6 +118,17 @@ public class StationInteractor : MonoBehaviour
             return;
         }
 
+        // ★ 对话框开着的时候：提示和交互都让开（对话框自己管开关，别再抢 F）
+        //   同时把「有界面打开」这个静态标记同步上，右键锁敌 / ESC 协调器照旧能知道有界面
+        if (DialogueUI.正在显示)
+        {
+            if (!有界面打开) 有界面打开 = true;
+            隐藏提示();
+            return;
+        }
+        // 对话框关掉了：把标记收回来（建筑界面还开着的话不动它）
+        if (有界面打开 && 当前界面 == null) 有界面打开 = false;
+
         // 刚关掉界面的一小段时间内不再响应，否则"关掉的那一下"会顺手又开一个
         if (关闭冷却 > 0f) { 隐藏提示(); return; }
 
@@ -305,6 +316,23 @@ public class StationInteractor : MonoBehaviour
     public void 打开界面(StationInteractable 设施)
     {
         if (设施 == null || 界面已打开) return;
+
+        // ★ 对话类设施**不走幕布、也不走界面预制体**，交给 NPC 自己的对话模块。
+        //   原来这里会给对话类也造一块占位幕布（sortingOrder=2500），而对话框只有 900，
+        //   结果幕布永远盖在对话框上面 —— 用户实测就是"有的村民点开是一块空白幕布，
+        //   有的村民是幕布和对话叠在一起"。而且 NpcDialogue 也在同一帧响应 F，等于两个系统抢一个键。
+        if (设施.类型 == StationInteractable.StationKind.对话)
+        {
+            var 对话 = 设施.GetComponent<NpcDialogue>();
+            if (对话 == null) 对话 = 设施.GetComponentInParent<NpcDialogue>();
+            if (对话 == null) 对话 = 设施.gameObject.AddComponent<NpcDialogue>();   // 老场景实例漏挂时兜一下
+
+            本次右键已被占用 = true;
+            Debug.Log($"[StationInteractor] 【{设施.标题}】交给对话模块打开", 设施);
+            对话.打开对话();
+            return;
+        }
+
         当前设施 = 设施;
 
         // 有做好的界面就用它，没有就用占位幕布

@@ -178,10 +178,29 @@ public class NpcDialogue : MonoBehaviour
 
     void Update()
     {
-        if (设施 != null && 设施.界面预制体 != null) return;   // 交给 StationInteractor 开
+        if (设施 != null && 设施.界面预制体 != null) return;   // 设施自己配了界面，交给 StationInteractor
         if (DialogueUI.正在显示) return;                        // 已经开着对话框，别再抢 F
+        if (StationInteractor.有界面打开) return;               // 别的界面开着，别往上叠
         if (当前对话中 != null && 当前对话中 != this) return;
+
+        // ★ 玩家身上有 StationInteractor 时，**F 由它统一处理**（它是全项目唯一的交互入口：
+        //   建筑 F 炼丹、NPC F 对话，同屏多个时取离根节点更近的那个，然后对话类再回调到这里）。
+        //   本脚本自己处理 F 只是"没有交互器"时的兜底，否则两边会同时响应同一个 F —— 实测就是这个 bug。
+        if (找玩家交互器() != null) return;
+
         if (Input.GetKeyDown(交互键) && 是最近的可对话目标()) 打开对话();
+    }
+
+    static StationInteractor 缓存交互器;
+
+    static StationInteractor 找玩家交互器()
+    {
+        if (缓存交互器 == null)
+        {
+            var 玩家 = 取玩家();
+            if (玩家 != null) 缓存交互器 = 玩家.GetComponent<StationInteractor>();
+        }
+        return 缓存交互器;
     }
 
     /// <summary>和 StationInteractor 同一条规则：谁根节点更近就归谁</summary>

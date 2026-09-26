@@ -424,7 +424,7 @@ public class DialogueUI : MonoBehaviour
         var 画布 = gameObject.GetComponent<Canvas>();
         if (画布 == null) 画布 = gameObject.AddComponent<Canvas>();
         画布.renderMode = RenderMode.ScreenSpaceOverlay;
-        画布.sortingOrder = 900;
+        画布.sortingOrder = 2600;      // ★ 要**高于** StationInteractor 的占位幕布(2500)，低于暂停菜单(3000)
         if (gameObject.GetComponent<CanvasScaler>() == null)
         {
             var cs = gameObject.AddComponent<CanvasScaler>();
