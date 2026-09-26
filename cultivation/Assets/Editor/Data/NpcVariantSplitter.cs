@@ -333,7 +333,7 @@ public static class NpcVariantSplitter
     ///     最弱的拿第一个（幼 / 微末），最强的拿最后一个（王 / 无双）。
     ///     这样 2 个版本是「幼 / 王」，4 个版本是「幼 / 壮 / 悍 / 王」，8 个版本刚好全用上。
     ///   · 家族名从名字本身拆（`白熊精01` → `白熊精`），再过一遍 <see cref="名字修正"/>
-    ///     （`LieQuan` → `猎犬`、`XiaoYaoZi` → `逍遥子` —— 素材名是英文的补中文）
+    ///     （`LieQuan` → `猎犬` —— 素材名是英文的补中文）
     /// </summary>
     public static void 命名()
     {
@@ -389,7 +389,7 @@ public static class NpcVariantSplitter
             }
         }
 
-        // ---- 3) 不成家族的单个 NPC 也要能翻译（`npc_xiaoyaozi` 的名字就是光秃秃的 `XiaoYaoZi`）----
+        // ---- 3) 不成家族的单个 NPC 也要能翻译（名字就是光秃秃英文的那种）----
         for (int i = 1; i < 行.Count; i++)
         {
             if (string.IsNullOrWhiteSpace(行[i])) continue;

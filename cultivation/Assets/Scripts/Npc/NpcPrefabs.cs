@@ -8,7 +8,7 @@ using UnityEngine;
 /// **挑到模型文件（.FBX）而不是预制体** —— 只要同一个 Resources 目录下
 /// 放着一个和 prefab **同名的 FBX**，`Resources.Load` 就把那个 FBX 给你。
 /// 本工程实测 **240 个真灵里有 17 个** 是这种摆法
-/// （`YeZhu/YeZhu.FBX` + `YeZhu/YeZhu.prefab`、`TieJiang/TieJiang.FBX` + …）。
+/// （`YeZhu/YeZhu.FBX` + `YeZhu/YeZhu.prefab` 这种摆法）。
 ///
 /// 拿到 FBX 的后果**非常隐蔽，而且不报任何错**：
 ///
