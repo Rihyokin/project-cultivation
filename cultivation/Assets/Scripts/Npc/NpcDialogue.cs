@@ -61,6 +61,12 @@ public class NpcDialogue : MonoBehaviour
     void Start()
     {
         确保设施();
+
+        // 场景里存下来的 NPC 实例 Animator 的 playable 可能是断的（状态时钟在走、骨头不动，
+        // 看起来就是"僵在原地"）。补一次 Rebind+Update 立刻恢复；健康实例上调也无害。
+        var 动画 = GetComponent<Animator>();
+        if (动画 == null) 动画 = GetComponentInChildren<Animator>();
+        Npc动画自检.修(动画);
     }
 
     /// <summary>确保 NPC 身上有「F 对话」设施（建筑那套），没有就补一个</summary>
