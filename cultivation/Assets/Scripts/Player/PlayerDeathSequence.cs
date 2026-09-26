@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using UnityEngine;
 
 /// <summary>
@@ -178,6 +178,14 @@ public class PlayerDeathSequence : MonoBehaviour
         if (玩家视觉 != null)
             foreach (var r in 玩家视觉.GetComponentsInChildren<Renderer>(true)) r.enabled = 模型原本可见;
         foreach (var c in 死亡时禁用) if (c != null) c.enabled = true;
+
+        // ★ 修「重生后自己长出一把剑」：上面这行会把死亡时关掉的组件**全部**开回来，
+        //   但技能类组件（普攻方法 / 被动神通）的唯一权威是 PlayerAbilityLoader
+        //   —— 它按「当前功法 + 已获得被动」装卸。新档主角什么都没学，
+        //   普攻方法组件本来就该是关的；全开会让它实例化出剑的模型（用户实测报的）。
+        //   所以恢复之后立刻让装载器按规则重新对一遍。
+        var 能力装载 = GetComponent<PlayerAbilityLoader>();
+        if (能力装载 != null) 能力装载.Refresh();
 
         // 4) 把怪的战斗状态重置 —— 免得它们还"以为玩家死了"而发呆
         if (重生时重置怪物) 重置全场敌人();
