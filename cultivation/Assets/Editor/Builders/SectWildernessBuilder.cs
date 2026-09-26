@@ -536,6 +536,47 @@ public static class SectWildernessBuilder
         return false;
     }
 
+    // ------------------------------------------------------------ ★ 用户手动删掉的那一片（2026-09-27）
+
+    /// <summary>
+    /// **手动稀疏带**：用户在场景里手删了 76 个物件（71 棵树 + 3 块石头，提交 `ba5fd951`），
+    /// 把位置反查出来后看到它们不是一团，而是**一条从西南 (-23,19) 斜拉到东北 (7,55) 的带子**
+    /// （最大偏离这条线 11m）。用户：「添加进排除区吧」。
+    ///
+    /// 所以这里就按**一条胶囊**（线段 + 半径）来排：以后重跑生成器时这条带子里**不再长树**。
+    /// ★ 只排树 —— 灌木/花草/石头用户没删，别一起清掉 ✗（`可放()` 是四种植被共用的，所以在撒树那边单独判）
+    /// ★★ **这两个坐标不要再乘 尺度**：它们是从**最终的场景文件**里反查出来的（已经是 200m 尺度下的世界坐标），
+    ///    我第一版顺手乘了 尺度 → 带子跑到 (-12,10)→(4,28)，只盖住 8/73 棵树 ✗（靠"逐个点验证"抓出来的）
+    /// </summary>
+    static readonly Vector2 手删带A = new Vector2(-23f, 19f);
+    static readonly Vector2 手删带B = new Vector2(7f, 55f);
+    const float 手删带半 = 11f;      // 带子宽度的一半（跟尺度无关：这是"用户圈出来的范围"）
+
+    /// <summary>带子外侧的两小簇（手删点里偏离主线最远的那些），各补一个圆把漏掉的盖住</summary>
+    static readonly Vector2[] 手删树圆 = { new Vector2(-20.5f, 47.3f), new Vector2(2.5f, 27f) };
+    const float 手删树圆半 = 9f;
+
+    /// <summary>手删的 3 块石头（两处）：撒散石时避开。★ 同样是**最终世界坐标**，不乘尺度</summary>
+    static readonly Vector2[] 手删石 = { new Vector2(11.5f, 75.4f), new Vector2(-5.4f, 80.7f) };
+    const float 手删石半 = 7f;
+
+    /// <summary>在手动稀疏带里（撒树用）</summary>
+    static bool 在手动稀疏带(Vector2 p)
+    {
+        if (到线段距离(p, 手删带A, 手删带B) < 手删带半) return true;
+        foreach (var c in 手删树圆)
+            if (Vector2.Distance(p, c) < 手删树圆半) return true;
+        return false;
+    }
+
+    /// <summary>在手动删掉的石头附近（撒散石用）</summary>
+    static bool 在手动删石区(Vector2 p)
+    {
+        foreach (var c in 手删石)
+            if (Vector2.Distance(p, c) < 手删石半) return true;
+        return false;
+    }
+
     // ============================================================ 林团（树木组团放置）
 
     struct 林团
@@ -1222,6 +1263,7 @@ public static class SectWildernessBuilder
                 var p = t.心 + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * r;
                 // 越靠团心越密（边缘自然稀疏 → 不会是个"圆饼"）
                 if (rng.NextDouble() > Mathf.Lerp(1f, 0.32f, r / t.半)) continue;
+                if (在手动稀疏带(p)) continue;          // ★ 用户手删过的那条带子：不再长树
                 if (!可放(p, 已放, 2.9f)) continue;
 
                 if (放一棵树(rng, 组, p, t.树种, 已放, 用过的)) 放下++;
@@ -1236,6 +1278,7 @@ public static class SectWildernessBuilder
                                 地形Z0 + 6f + (float)rng.NextDouble() * (地形边长 - 12f));
             if (rng.NextDouble() > 0.2f) continue;
             if (空地权(p) > 0.25f) continue;
+            if (在手动稀疏带(p)) continue;              // ★ 同上：散生树也避开那条带子
             if (!可放(p, 已放, 9.0f)) continue;      // ★ 散生树之间离得更开，才像"野地里零星的几棵"
             if (放一棵树(rng, 组, p, 主树种(p), 已放, 用过的)) 散生++;
         }
@@ -1383,6 +1426,7 @@ public static class SectWildernessBuilder
                                 地形Z0 + 6f + (float)rng.NextDouble() * (地形边长 - 12f));
             if (rng.NextDouble() > 0.3f) continue;
             if (在刷怪区(p, 4f)) continue;                 // 刷怪区里别摆石头绊脚
+            if (在手动删石区(p)) continue;                  // ★ 用户手删过的那 3 块石头：别再生成
             if (!可放(p, 已放, 9.0f)) continue;
 
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(Env2 + "/" + 石头们[rng.Next(石头们.Length)]);
