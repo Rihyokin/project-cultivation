@@ -50,8 +50,7 @@ public class DialogueDefinition : ScriptableObject
     public int 跳转2 = 0;
     public int 跳转3 = 0;
 
-    [Header("条件（任务管理器用；分号分隔多个标记）")]
-    [Tooltip("需要**全部**具备这些标记，这一段才会被选中。留空 = 无条件")]
+    [Header("条件（任务管理器用；分号分隔多个标记）")]    [Tooltip("需要**全部**具备这些标记，这一段才会被选中。留空 = 无条件")]
     public string 需要标记 = "";
 
     [Tooltip("只要具备其中**任意一个**标记，这一段就被跳过")]
@@ -66,6 +65,13 @@ public class DialogueDefinition : ScriptableObject
 
     [Tooltip("情绪强度倍率")]
     public float 情绪强度 = 1f;
+
+    [Header("任务接线（用户 2026-09-26）")]
+    [Tooltip("显示到这一段时**接取**哪个任务（任务id）。留空 = 不接")]
+    public string 触发任务 = "";
+
+    [Tooltip("显示到这一段时把哪个任务的**当前阶段**标成完成（任务id）。留空 = 不完成")]
+    public string 完成任务 = "";
 
     // ============================================================ 便捷读取（运行时不碰表结构）
 
