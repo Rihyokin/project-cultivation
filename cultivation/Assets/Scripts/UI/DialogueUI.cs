@@ -54,6 +54,13 @@ public class DialogueUI : MonoBehaviour
     public Color 回答底色 = new Color(0.80f, 0.80f, 0.80f, 0.96f);
     public Color 回答悬停色 = new Color(0.95f, 0.92f, 0.70f, 1f);
 
+    [Header("立绘大小（用户 2026-09-27 定的全局规则：谁在说话谁放大，另一边缩小）")]
+    [Tooltip("说话方的立绘缩放")]
+    [Range(0.5f, 1.5f)] public float 说话方缩放 = 1f;
+
+    [Tooltip("不说话方的立绘缩放")]
+    [Range(0.5f, 1.5f)] public float 非说话方缩放 = 0.82f;
+
     [Header("行为")]
     [Tooltip("没有回答的段落，按这个键继续下一段")]
     public KeyCode 继续键 = KeyCode.F;
@@ -154,6 +161,7 @@ public class DialogueUI : MonoBehaviour
         内容文本.text = d.文本;
         贴立绘(左立绘, 左立绘提示, d.立绘, "人物立绘");
         贴立绘(右立绘, 右立绘提示, d.玩家立绘, "玩家立绘");
+        按说话方缩放立绘(d);          // ★ 说话方放大、非说话方缩小
         建回答(d);
         播放情绪(d.情绪, d.情绪强度);
 
@@ -166,6 +174,20 @@ public class DialogueUI : MonoBehaviour
             任务.处理对话绑定(d.触发任务, d.完成任务);
             任务.通知对话(d.id, 当前NpcId);
         }
+    }
+
+    /// <summary>
+    /// **说话方立绘放大、非说话方缩小**（用户 2026-09-27 定的全局演出规则）。
+    /// 判断谁在说：`说话人` 留空 = NPC 自己在说；写了名字就比对 —— 等于 NPC 名字的是 NPC 说，
+    /// 其它（例如「主角」或玩家起的名字）就当玩家在说。
+    /// </summary>
+    void 按说话方缩放立绘(DialogueDefinition d)
+    {
+        string npc名 = 当前NPC != null ? 当前NPC.gameObject.name : "";
+        bool 是NPC在说 = string.IsNullOrEmpty(d.说话人) || d.说话人 == npc名;
+
+        if (左立绘 != null) 左立绘.rectTransform.localScale = Vector3.one * (是NPC在说 ? 说话方缩放 : 非说话方缩放);
+        if (右立绘 != null) 右立绘.rectTransform.localScale = Vector3.one * (是NPC在说 ? 非说话方缩放 : 说话方缩放);
     }
 
     void 贴立绘(Image 图, Text 提示, string 资源名, string 占位字)
