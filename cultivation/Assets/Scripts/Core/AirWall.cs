@@ -23,6 +23,14 @@ using UnityEngine;
 /// 【高度参考】`御风` 悬浮 2.4m、`坐骑` 最高 5.64m —— 墙高给到 **10m 以上**才拦得住飞的；
 /// Scale.y=10 时以原点为中心，也就是挡 y −5~5，摆的时候记得把它往上抬一点
 /// （比如 y=3 → 实际挡 −2~8 ✓；Inspector 上能看到 `世界高度范围` 的实时值）。
+///
+/// 【日常编辑时默认隐藏】墙在场景里是**关掉 Renderer** 存盘的（块头很大，摆村子时非常挡事），
+/// 所以平时在 Scene 视图里**什么都看不到** —— 连橙色线框也不画（`OnDrawGizmos` 会先看渲染器开没开）。
+/// 两种临时看回来的办法：
+///   * **从 Hierarchy 里点中某一段** → `OnDrawGizmosSelected()` 照样画线框（隐藏状态下也能对准它调）；
+///   * 菜单 **`修仙 / 编辑器里显示或隐藏 空气墙`** → 把当前场景所有墙一起显示出来（跟"UI 画布"那个菜单一个套路）。
+/// ★ 这个开关**只改 `Renderer.enabled`、不保存场景**：调完再按一次关回去，或者干脆不保存即可。
+/// 万一真被存成"显示"了也不影响玩家 —— `Awake()` 进游戏一定会再关掉 ✓
 /// </summary>
 [RequireComponent(typeof(BoxCollider))]
 [DisallowMultipleComponent]
@@ -44,11 +52,25 @@ public class AirWall : MonoBehaviour
     {
         // 预制体上那个半透明方块只是"编辑器里的样子"，游戏里一律不画
         if (!运行时隐藏) return;
-        foreach (var r in GetComponentsInChildren<Renderer>(true))
-            if (r != null) r.enabled = false;
+        设置渲染开关(false);
     }
 
     void OnDrawGizmos()
+    {
+        // 【日常编辑默认隐藏】用户原话：「日常编辑场景时也是默认隐藏起来」
+        // 19 段墙都是 60 多米高，要是线框一直画着，照样糊满整个 Scene 视图 → 隐藏时连线框也不画。
+        // 临时想看：点中它（走 OnDrawGizmosSelected）或按菜单「修仙/编辑器里显示或隐藏 空气墙」。
+        if (当前隐藏) return;
+        画线框_内部();
+    }
+
+    void OnDrawGizmosSelected()
+    {
+        // 从 Hierarchy 里选中的那一段**永远画**：隐藏状态下也能一眼看出它多大、往哪偏
+        画线框_内部();
+    }
+
+    void 画线框_内部()
     {
         if (!画线框) return;
         var 盒 = GetComponent<BoxCollider>();
@@ -61,6 +83,24 @@ public class AirWall : MonoBehaviour
         Gizmos.DrawWireCube(盒.center, 盒.size);
         Gizmos.matrix = 旧矩阵;
         Gizmos.color = 旧色;
+    }
+
+    /// <summary>把身上所有 Renderer 开/关。编辑器菜单「修仙/编辑器里显示或隐藏 空气墙」调它。</summary>
+    public void 设置渲染开关(bool 开)
+    {
+        foreach (var r in GetComponentsInChildren<Renderer>(true))
+            if (r != null) r.enabled = 开;
+    }
+
+    /// <summary>身上所有 Renderer 是不是都关着（= Scene 视图里看不见的状态）</summary>
+    public bool 当前隐藏
+    {
+        get
+        {
+            foreach (var r in GetComponentsInChildren<Renderer>(true))
+                if (r != null && r.enabled) return false;
+            return true;
+        }
     }
 
     /// <summary>墙的世界高度范围（摆位时对照"御风 2.4 / 坐骑 5.64"用）</summary>
@@ -85,4 +125,6 @@ public class AirWall : MonoBehaviour
     // ---- ASCII 别名 ----
     public bool DrawWireframe { get => 画线框; set => 画线框 = value; }
     public bool HideAtRuntime { get => 运行时隐藏; set => 运行时隐藏 = value; }
+    public bool HiddenInEditor => 当前隐藏;
+    public void SetRenderersEnabled(bool on) => 设置渲染开关(on);
 }
