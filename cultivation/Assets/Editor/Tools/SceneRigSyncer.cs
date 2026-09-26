@@ -25,6 +25,7 @@ public static class SceneRigSyncer
         "Assets/Scenes/Sect.scene",
         "Assets/Scenes/Demon-Suppressing Tower.scene",
         "Assets/Scenes/village.scene",
+        "Assets/Scenes/Sect_Wilderness.scene",
     };
 
     /// <summary>通用装配的根物体。平行光不在内 —— 各场景的氛围各自保留。</summary>
