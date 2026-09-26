@@ -11417,6 +11417,64 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1.780236, y: 4, z: 0.6}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!1001 &318594948
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 100038, guid: 883643eae58a9b24888f385b13227079, type: 3}
+      propertyPath: m_Name
+      value: LangQi_01
+      objectReference: {fileID: 0}
+    - target: {fileID: 400038, guid: 883643eae58a9b24888f385b13227079, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 1.2923236
+      objectReference: {fileID: 0}
+    - target: {fileID: 400038, guid: 883643eae58a9b24888f385b13227079, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.0000009536743
+      objectReference: {fileID: 0}
+    - target: {fileID: 400038, guid: 883643eae58a9b24888f385b13227079, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 2.8063576
+      objectReference: {fileID: 0}
+    - target: {fileID: 400038, guid: 883643eae58a9b24888f385b13227079, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 400038, guid: 883643eae58a9b24888f385b13227079, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400038, guid: 883643eae58a9b24888f385b13227079, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400038, guid: 883643eae58a9b24888f385b13227079, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400038, guid: 883643eae58a9b24888f385b13227079, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400038, guid: 883643eae58a9b24888f385b13227079, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400038, guid: 883643eae58a9b24888f385b13227079, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects:
+    - {fileID: 100064, guid: 883643eae58a9b24888f385b13227079, type: 3}
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 883643eae58a9b24888f385b13227079, type: 3}
 --- !u!1 &322238811
 GameObject:
   m_ObjectHideFlags: 0
@@ -48104,6 +48162,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 97dbc7a45bf5ef642b07664763f21b9e, type: 2}
   - {fileID: 11400000, guid: 23a5f96958d90aa40bd6783cea723fbc, type: 2}
   "\u5F53\u524D\u5750\u9A91": {fileID: 0}
+  "\u5FA1\u98CE\u795E\u901Aid": ability_pingxu_yufeng
   "\u4E3B\u52A8\u6280\u80FD":
   - {fileID: 11400000, guid: d98f9a801418f9649b580ca03c14b3ee, type: 2}
   - {fileID: 11400000, guid: 225ce4af1efca1e449a0d8af78c74e2b, type: 2}
@@ -61591,6 +61650,7 @@ MonoBehaviour:
   "\u6BCF\u79D2\u6D88\u8017\u7075\u6C14": 0.1
   "\u98DE\u884C\u901F\u5EA6": 9
   "\u98DE\u884C\u9AD8\u5EA6": 2.4
+  "\u5730\u9762\u63A2\u6D4B\u6DF1\u5EA6": 60
   "\u5347\u7A7A\u65F6\u957F": 0.85
   "\u843D\u5730\u65F6\u957F": 0.7
   "\u9AD8\u5EA6\u66F2\u7EBF":
@@ -61916,7 +61976,8 @@ MonoBehaviour:
   "\u63A7\u5236\u5668": {fileID: 1805764445}
   "\u5FA1\u98CE": {fileID: 1805764454}
   "\u52A8\u753B": {fileID: 1805764446}
-  "\u5750\u9A91\u952E": 101
+  "\u5750\u9A91\u952E": 304
+  "\u5750\u9A91\u952E2": 303
   "\u5141\u8BB8\u4E0B\u5750\u9A91": 1
   "\u73A9\u5BB6\u5347\u7A7A\u65F6\u957F": 0.9
   "\u5750\u9A91\u51FA\u751F\u65F6\u957F": 2.67
@@ -62027,9 +62088,9 @@ MonoBehaviour:
     "\u9A91\u4E58\u9AD8\u5EA6": 5.64
     "\u8D34\u5730": 0
   - "\u5750\u9A91id": mount_qilingzuoqi_01
-    "\u504F\u79FB": {x: 0.29, y: -3.95, z: 0.24}
+    "\u504F\u79FB": {x: 0, y: -1.73, z: 0}
     "\u671D\u5411": {x: 0, y: 0, z: 0}
-    "\u7F29\u653E": 3.8762
+    "\u7F29\u653E": 1.3
     "\u671D\u5411\u8DDF\u968F": 0
     "\u8DDF\u968F\u901F\u5EA6": 45
     "\u9A91\u4E58\u9AD8\u5EA6": 5.64
@@ -74992,3 +75053,4 @@ SceneRoots:
   - {fileID: 1059389728}
   - {fileID: 1431189821}
   - {fileID: 2140010827}
+  - {fileID: 318594948}

@@ -60,9 +60,10 @@ public class UIEntryInfo : MonoBehaviour
             data.TogglePassive(p);          // 会触发 Changed，列表跟着刷新
         else if (Current is MountDefinition m && data != null)
         {
-            // 装备 / 取消装备坐骑。再点一次同一只 = 卸下
-            data.当前坐骑 = (data.当前坐骑 == m) ? null : m;
-            data.RaiseChanged();            // 会触发 Changed，坐骑页和骑乘系统都跟着刷新
+            // 装备 / 取消装备坐骑。再点一次同一只 = 卸下。
+            // ★ 一律走 设置当前坐骑()：互斥规则（装备坐骑 → 自动停用【凭虚御风】）写在那一处，
+            //   这里直接写 data.当前坐骑 会绕过它
+            data.设置当前坐骑(data.当前坐骑 == m ? null : m);
         }
 
         RefreshActionState();

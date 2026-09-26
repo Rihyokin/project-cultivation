@@ -12,6 +12,20 @@ using UnityEngine;
 ///   · 悬浮期间移动会以比跑步更快的速度飞行，动画切成【凭虚御风前进】；
 ///   · 再按一下 Shift 播【落地】动画，落地后恢复正常行走/跑步。
 ///
+/// ## 高度是「对地」的（用户定）
+///
+/// 悬浮高度 = **每帧向下探到的地面** + <see cref="飞行高度"/>，不是世界绝对高度。
+/// 上坡下坡会跟着地形升降，始终维持这个离地高度；
+/// **探不到地面（断崖 / 空洞）时沿用上一次探到的地面高度** —— 也就是原地维持一个固定高度。
+/// （以前是记「起飞那一刻的 transform.y」，地形一变就贴地或悬空 ✗）
+///
+/// ## 和坐骑共用一个 Shift 键
+///
+/// Shift 现在是「御风 / 坐骑」**共用的一个键**：**装了坐骑就归坐骑，御风让开**（见
+/// <see cref="读取切换输入"/>）。正常情况下两者不会同时生效 ——
+/// 装备坐骑会自动停用这个被动、启用这个被动会自动取消装备坐骑（`UIPanelData` 里的互斥规则），
+/// 这里那道判断只是数据对不上时的第二道保险。
+///
 /// 本组件只负责「状态机 + 灵气消耗 + 高度」，移动速度由 PlayerController 读取，
 /// 动画参数由 PlayerAnimationController 读取，互不耦合。
 /// </summary>
@@ -38,7 +52,9 @@ public class YufengFlight : MonoBehaviour
     [Header("操作")]
     [Tooltip("**切换御风的按键**：按一下起飞、再按一下落地。\n\n" +
              "以前是「按住 Shift 才飞」—— 飞久了要一直按着很累，所以改成切换式。\n" +
-             "只在**地面 / 御风悬浮**这两个稳定状态里响应；升空 / 落地过渡中按了不理会。")]
+             "只在**地面 / 御风悬浮**这两个稳定状态里响应；升空 / 落地过渡中按了不理会。\n\n" +
+             "★ 这个键**和坐骑共用**（用户定）：装了坐骑时 Shift 归坐骑，这里不响应 —— " +
+             "见 读取切换输入()。")]
     public KeyCode 切换键 = KeyCode.LeftShift;
 
     [Tooltip("第二个切换键（键盘左右 Shift 都认）。填 None 表示不要")]
@@ -56,8 +72,13 @@ public class YufengFlight : MonoBehaviour
     [Tooltip("御风时的移动速度（要比跑步快）")]
     public float 飞行速度 = 9f;
 
-    [Tooltip("悬浮高度（米）")]
+    [Tooltip("★ **对地悬浮高度（米）**：相对**脚下探到的地面**算，不是世界绝对高度。\n" +
+             "上坡下坡会跟着地形升降，始终维持这个离地高度。")]
     public float 飞行高度 = 2.4f;
+
+    [Tooltip("向下探地面能探多深（米）。**探不到就沿用上一次探到的地面高度**\n" +
+             "（= 原地维持一个固定高度），所以飞在断崖 / 空洞上方不会一路掉下去")]
+    public float 地面探测深度 = 60f;
 
     [Tooltip("升空动画时长（秒），到时间才进入悬浮")]
     public float 升空时长 = 0.85f;
@@ -99,7 +120,11 @@ public class YufengFlight : MonoBehaviour
     /// <summary>当前相对地面的高度偏移，PlayerController 用它控制升降</summary>
     public float 高度偏移 { get; private set; }
 
-    /// <summary>起飞时记录的地面高度</summary>
+    /// <summary>
+    /// **当前脚下的地面高度**（世界 Y）。每帧向下探一次；**探不到就保持上一次的值**。
+    /// PlayerController 用「它 + <see cref="高度偏移"/>」算目标高度，
+    /// YufengVfx 用「它 + 高度偏移」把风环踩在脚下。
+    /// </summary>
     public float 地面高度 { get; private set; }
 
     /// <summary>状态变化事件（参数为新状态）</summary>
@@ -169,6 +194,11 @@ public class YufengFlight : MonoBehaviour
 
         读取切换输入();
 
+        // ★ 高度是**对地**的：整个御风流程里每帧重新探脚下的地面。
+        //   探不到（断崖 / 空洞）就沿用上一次的值 → 原地维持一个固定高度。
+        //   放在状态机之前：这样升空 / 悬浮 / 落地三段用的是同一个地面基准。
+        if (状态 != FlightState.地面) 维护地面高度();
+
         bool wantFly = (想飞 || 强制御风) && 神通已启用 && (灵气 == null || 灵气.有灵气);
 
         switch (状态)
@@ -215,17 +245,45 @@ public class YufengFlight : MonoBehaviour
     /// 免得刚起飞就被自己取消掉。
     /// 想「开」的时候要求神通已启用、而且还有灵气；不然这一下就白按（保持关闭），
     /// 这样不会出现「按了关，灵气回满又自己飞起来」。
+    ///
+    /// ★ Shift 和坐骑**共用一个键**（用户定）：**装了坐骑时这一下归坐骑**，御风让开。
     /// </summary>
     void 读取切换输入()
     {
         if (强制御风) { 想飞 = true; return; }
         if (禁止切换) return;      // 骑乘坐骑期间不许起飞
+        if (按键归坐骑()) return;   // 装了坐骑 → Shift 是坐骑的
 
         bool 按下 = Input.GetKeyDown(切换键)
                  || (切换键2 != KeyCode.None && Input.GetKeyDown(切换键2));
         if (!按下) return;
 
         切换();
+    }
+
+    /// <summary>
+    /// Shift 这一下是不是该归坐骑。
+    /// 用户定的规则：**Shift 是「御风 / 坐骑」共用的一个键** —— 装了坐骑就骑坐骑。
+    /// （装备坐骑时这个被动已经被自动停用了，这里是数据对不上时的第二道保险。）
+    /// </summary>
+    bool 按键归坐骑()
+    {
+        var d = 解析面板数据();
+        return d != null && d.当前坐骑 != null;
+    }
+
+    /// <summary>
+    /// 向下探一次脚下的地面。**探到才更新**，探不到就保持上一次的值 ——
+    /// 也就是用户要的「检测不到地面时维持一个固定高度」。
+    /// 返回这一次到底探没探到。
+    /// </summary>
+    bool 维护地面高度()
+    {
+        float y;
+        if (!GroundProbe.向下取地面(transform.position, 地面探测深度, transform, out y)) return false;
+        地面高度 = y;
+        已探到地面 = true;
+        return true;
     }
 
     /// <summary>
@@ -236,6 +294,7 @@ public class YufengFlight : MonoBehaviour
     {
         if (强制御风) { 想飞 = true; return; }
         if (禁止切换) return;      // 骑乘坐骑期间不许起飞
+        if (按键归坐骑()) return;   // 装了坐骑 → Shift 归坐骑（用户定的共用键）
 
         // 升空 / 落地过渡中不响应 —— 免得刚起飞就被自己取消掉
         if (状态 == FlightState.升空 || 状态 == FlightState.落地) return;
@@ -255,11 +314,17 @@ public class YufengFlight : MonoBehaviour
 
     void 进入升空()
     {
-        地面高度 = transform.position.y;
+        // 起飞那一刻先探一次脚下的地面；**探不到**（例如站在悬空平台边缘）就退回当前站位高度。
+        // 之后每一帧都由 维护地面高度() 跟着地形走
+        if (!维护地面高度()) { 地面高度 = transform.position.y; 已探到地面 = false; }
+
         升空剩余 = Mathf.Max(0.01f, 升空时长);
         高度偏移 = 0f;
         切换到(FlightState.升空);
     }
+
+    /// <summary>本次御风流程里**有没有真探到过地面**（排查 / 自动化验证用：false = 正在靠"固定高度"兜底）</summary>
+    public bool 已探到地面 { get; private set; }
 
     void 进入落地()
     {

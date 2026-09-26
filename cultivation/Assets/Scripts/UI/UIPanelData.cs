@@ -32,8 +32,20 @@ public class UIPanelData : MonoBehaviour
     [Tooltip("拥有的坐骑（坐骑表.csv 生成）。由 DataTableImporter.RewirePanelData 自动收集")]
     public List<MountDefinition> 坐骑 = new List<MountDefinition>();
 
-    [Tooltip("当前乘骑的坐骑。null = 没骑")]
+    [Tooltip("当前乘骑的坐骑。null = 没骑。\n" +
+             "★ **不要直接赋值** —— 一律走 设置当前坐骑()，" +
+             "互斥规则（装备坐骑 → 自动停用【凭虚御风】）就写在那一处")]
     public MountDefinition 当前坐骑;
+
+    [Header("坐骑 ⇄ 御风 互斥")]
+    [Tooltip("【凭虚御风】在被动神通表里的 id。\n" +
+             "用户 2026-09-24 定的规则：**装备坐骑 → 自动停用这个被动；" +
+             "启用这个被动 → 自动取消装备坐骑**，两者不能同时生效\n" +
+             "（Shift 是它们共用的一个键，见 MountRider / YufengFlight）")]
+    public string 御风神通id = 御风神通默认id;
+
+    /// <summary>【凭虚御风】在被动神通表里的 id 的默认值</summary>
+    public const string 御风神通默认id = "ability_pingxu_yufeng";
 
     [Header("主动技能装备（神通/法宝/灵阵共用）")]
     [Tooltip("6 个主动技能槽的内容。空位用 null 表示")]
@@ -153,8 +165,12 @@ public class UIPanelData : MonoBehaviour
         if (已停用被动.Contains(ability)) { 已停用被动.Remove(ability); nowEnabled = true; }
         else { 已停用被动.Add(ability); nowEnabled = false; }
 
+        // ★ 启用【凭虚御风】→ **自动取消装备坐骑**（用户 2026-09-24 定的规则）
+        bool 卸了坐骑 = nowEnabled && 取消坐骑因为御风(ability);
+
         RaiseChanged();
-        ShowHint(ability.DisplayName + (nowEnabled ? " 已启用" : " 已停用"));
+        ShowHint(ability.DisplayName + (nowEnabled ? " 已启用" : " 已停用")
+                 + (卸了坐骑 ? "，坐骑已自动取消装备" : ""));
         return nowEnabled;
     }
 
@@ -162,10 +178,80 @@ public class UIPanelData : MonoBehaviour
     public void SetPassiveEnabled(PassiveDivineAbility ability, bool enabled)
     {
         if (ability == null) return;
+        EnsureLists();
         if (enabled) 已停用被动.Remove(ability);
         else if (!已停用被动.Contains(ability)) 已停用被动.Add(ability);
+
+        // 同 TogglePassive：启用御风就卸坐骑
+        if (enabled && 取消坐骑因为御风(ability))
+            ShowHint("【" + ability.DisplayName + "】已启用，坐骑已自动取消装备");
+
         RaiseChanged();
     }
+
+    // ---------------------------------------------------------------- 坐骑 ⇄ 御风 互斥
+
+    /// <summary>
+    /// **装备 / 取消装备坐骑**。★ 所有入口都走这里 ——
+    /// 互斥规则（装备坐骑就自动停用【凭虚御风】）只在这一处实现。
+    ///
+    /// 用户 2026-09-24：「装备坐骑时会自动停用御风这个被动神通。
+    /// 启用凭虚御风时会自动取消装备坐骑」—— 两条规则一起保证两者**不会同时生效**，
+    /// Shift 那个共用键才不会有歧义。
+    /// </summary>
+    public void 设置当前坐骑(MountDefinition m)
+    {
+        EnsureLists();
+        if (当前坐骑 == m) return;
+
+        当前坐骑 = m;
+
+        bool 停了御风 = m != null && 停用御风被动();
+        RaiseChanged();
+
+        if (m != null)
+            ShowHint("已装备坐骑「" + m.DisplayName + "」"
+                     + (停了御风 ? "，【凭虚御风】已自动停用" : ""));
+    }
+
+    /// <summary>取消装备当前坐骑。返回是否真的卸掉了（本来就没装 → false）</summary>
+    public bool 取消装备坐骑()
+    {
+        EnsureLists();
+        if (当前坐骑 == null) return false;
+        当前坐骑 = null;
+        return true;
+    }
+
+    /// <summary>表里那条【凭虚御风】被动（按 <see cref="御风神通id"/> 找）</summary>
+    public PassiveDivineAbility 取御风神通()
+    {
+        EnsureLists();
+        if (神通 == null) return null;
+        foreach (var a in 神通)
+        {
+            var p = a as PassiveDivineAbility;
+            if (p != null && !string.IsNullOrEmpty(御风神通id) && p.神通id == 御风神通id) return p;
+        }
+        return null;
+    }
+
+    /// <summary>停用【凭虚御风】。返回是否真的改了状态（本来就是停用 → false）</summary>
+    public bool 停用御风被动()
+    {
+        var yf = 取御风神通();
+        if (yf == null || !IsPassiveEnabled(yf)) return false;
+        已停用被动.Add(yf);
+        return true;
+    }
+
+    /// <summary>这条被动是不是【凭虚御风】</summary>
+    bool 是御风(PassiveDivineAbility ability)
+        => ability != null && !string.IsNullOrEmpty(御风神通id) && ability.神通id == 御风神通id;
+
+    /// <summary>启用御风时要顺手卸坐骑。返回是否真的卸了（本来就没坐骑 → false）</summary>
+    bool 取消坐骑因为御风(PassiveDivineAbility ability)
+        => 是御风(ability) && 取消装备坐骑();
 
     // ---------------------------------------------------------------- 装备槽
 

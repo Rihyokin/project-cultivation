@@ -3,7 +3,8 @@ using UnityEngine;
 /// <summary>
 /// 2.5D 俯视角角色移动控制。
 /// WASD 相对摄像机方向移动（屏幕上=向远处），Shift 奔跑。
-/// （装了【凭虚御风】时 Shift 改成**按一下切换飞行**，见 <see cref="YufengFlight"/>）
+/// （装了【凭虚御风】或装备了坐骑时，Shift 变成**按一下切换御风 / 坐骑** ——
+/// 两者共用一个键，见 <see cref="YufengFlight"/> 与 <see cref="MountRider"/>）
 /// 移动交给 CharacterController，自动处理碰撞、台阶与贴地。
 /// </summary>
 [RequireComponent(typeof(CharacterController))]
@@ -89,7 +90,8 @@ public class PlayerController : MonoBehaviour
         MoveDirection = desired;
         IsRunning = running;
 
-        // 凭虚御风生效时，Shift 从「按住奔跑」变成「按一下切换飞行」（见 YufengFlight）
+        // Shift 与【凭虚御风】/ 坐骑**共用一个键**（按一下切换，见 YufengFlight / MountRider）；
+        // 真的骑上 / 飞起来之后，速度改用它们各自那一套
         IsFlying = 御风 != null && 御风.御风流程中;
         bool 飞行中 = 御风 != null && 御风.御风中;
         // 骑乘中：不能起飞（YufengFlight.禁止切换 挡住），高度交给坐骑系统
