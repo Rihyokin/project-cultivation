@@ -307,11 +307,80 @@ public class 任务管理器 : MonoBehaviour
                     Debug.Log("[任务] 调度：" + npc.name + " 把玩家当成了敌人");
                     break;
                 }
+            case 任务动作.处决:
+                {
+                    // 直接打死（三幕大师兄一刀劈野猪）：TakeDamage(伤害, 是否已减免)
+                    var 实例 = npc.GetComponent<NpcInstance>();
+                    if (实例 != null) 实例.TakeDamage(9999999f, false);
+                    Debug.Log("[任务] 调度：处决 " + npc.name);
+                    break;
+                }
+            case 任务动作.走向:
+                Debug.Log("[任务] 调度：" + npc.name + " 走向 " + 阶段.坐标);
+                StartCoroutine(走过去(npc, 阶段.坐标, 阶段.动作速度));
+                break;
+            case 任务动作.飞到:
+                Debug.Log("[任务] 调度：" + npc.name + " 飞到 " + 阶段.坐标);
+                StartCoroutine(飞过去(npc, 阶段.坐标, 阶段.动作速度, 阶段.动作参数));
+                break;
             case 任务动作.销毁:
                 Debug.Log("[任务] 调度：销毁 " + npc.name);
                 Destroy(npc.gameObject);
                 break;
         }
+    }
+
+    /// <summary>走过去：走行走状态 + 平移到坐标，到位切回待机</summary>
+    System.Collections.IEnumerator 走过去(GameObject npc, Vector3 目标, float 速度)
+    {
+        if (npc == null) yield break;
+        播状态(npc, "Walk");
+        var t = npc.transform;
+        while (t != null)
+        {
+            var 平 = new Vector3(目标.x - t.position.x, 0f, 目标.z - t.position.z);
+            if (平.magnitude <= 0.15f) break;
+            t.position = Vector3.MoveTowards(t.position, new Vector3(目标.x, t.position.y, 目标.z), Mathf.Max(0.1f, 速度) * Time.deltaTime);
+            if (平.sqrMagnitude > 0.0001f)
+                t.rotation = Quaternion.Slerp(t.rotation, Quaternion.LookRotation(平.normalized), 8f * Time.deltaTime);
+            yield return null;
+        }
+        播状态(npc, "Idle");
+    }
+
+    /// <summary>
+    /// 御风飞过去：**升空 → 前进（同时位移）→ 到点悬停**。
+    /// 前进用的状态名从 <see cref="QuestDefinition.动作参数"/> 取，留空默认 `Yufeng_Forward`。
+    /// （大师兄/村民这些同骨骼 NPC 都加了这几个状态，见 大师兄.controller）
+    /// </summary>
+    System.Collections.IEnumerator 飞过去(GameObject npc, Vector3 目标, float 速度, string 前进状态)
+    {
+        if (npc == null) yield break;
+        string 前进 = string.IsNullOrEmpty(前进状态) ? "Yufeng_Forward" : 前进状态;
+        播状态(npc, "Yufeng_TakeOff");
+        yield return new WaitForSeconds(0.45f);
+        播状态(npc, 前进);
+
+        var t = npc.transform;
+        while (t != null)
+        {
+            var 差 = 目标 - t.position;
+            if (差.magnitude <= 0.2f) break;
+            t.position = Vector3.MoveTowards(t.position, 目标, Mathf.Max(0.1f, 速度) * Time.deltaTime);
+            var 平 = new Vector3(差.x, 0f, 差.z);
+            if (平.sqrMagnitude > 0.0001f)
+                t.rotation = Quaternion.Slerp(t.rotation, Quaternion.LookRotation(平.normalized), 8f * Time.deltaTime);
+            yield return null;
+        }
+        播状态(npc, "Yufeng_Idle");
+    }
+
+    /// <summary>给 NPC 切动画状态（找不到那个状态时 Unity 只会打警告，不会崩）</summary>
+    static void 播状态(GameObject npc, string 状态)
+    {
+        if (npc == null || string.IsNullOrEmpty(状态)) return;
+        var a = npc.GetComponent<Animator>();
+        if (a != null) a.CrossFade(状态, 0.2f);
     }
 
     static GameObject 找NPC(string npcId)
