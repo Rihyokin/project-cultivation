@@ -45,15 +45,46 @@ public static class SectWildernessBuilder
     const string 根名 = "野外环境";
     const string 资产目录 = "Assets/Art/WildernessTerrain";
 
-    /// <summary>地形左下角（世界 XZ）与边长：覆盖 X[−200,200] Z[−200,200]（400×400 = 村庄的 4 倍面积）</summary>
-    const float 地形X0 = -200f, 地形Z0 = -200f, 地形边长 = 400f;
-    const float 地形高 = 34f;                 // 高度图 0..1 对应 34m
-    const float 地形基准 = 地形高 * 0.25f;     // 8.5 → 高度图 0.25 ↔ 世界 y=0
-    const int 高度分辨率 = 1025;               // 400m/1024 ≈ 0.39m 一格
-    const int 贴图分辨率 = 1024;               // 0.39m 一格（村庄是 0.2m，这里地大，够用）
-    const int 细节分辨率 = 512;                // 0.78m 一格（跟村庄一个密度，草才不会糊成一片 / 烧显卡）
+    // ============================================================ ★ 地图尺度（用户 2026-09-27 反馈后加的）
+
+    /// <summary>
+    /// **地图尺度**：下面所有"位置类"数据都是按 **1 = 400×400m** 写的，建场时统一乘这个系数。
+    /// 改一个数就能整体缩放地图，不用动几十个坐标 ✓
+    ///
+    /// 为什么砍到 0.5（= 200×200，跟村庄一样大）—— 用户：「地图是不是有点太大了可以缩小一半？」，
+    /// 量出来的理由：
+    ///   · 相机默认 `orthographicSize 14`（0.7~1.3 倍缩放）→ **玩家一屏只看到 28~40m 见方**，
+    ///     400m 的地图 = **14 屏宽**；跑一遍（6 m/s）要 67 秒、坐骑 9 m/s 也要 44 秒 ✗
+    ///   · 200m = 7 屏宽、跑 33 秒 ✓ 而且**同样的树量密度直接×4**（见 §树）
+    /// ★ 如果你要的是"面积减半"而不是"边长减半"，把这里改成 **0.707** 重跑一次即可（面积 = 边长²）。
+    /// </summary>
+    const float 尺度 = 0.5f;
+
+    /// <summary>地形左下角（世界 XZ）与边长。1 尺度时覆盖 X[−200,200] Z[−200,200]</summary>
+    const float 地形X0 = -200f * 尺度, 地形Z0 = -200f * 尺度, 地形边长 = 400f * 尺度;
+    const float 地形高 = 34f;                  // 高度图 0..1 对应 34m
+    const float 地形基准 = 地形高 * 0.25f;      // 8.5 → 高度图 0.25 ↔ 世界 y=0
+    const int 高度分辨率 = 1025;                // 200m/1024 ≈ 0.20m 一格（比村庄还细）
+    const int 贴图分辨率 = 1024;                // 0.20m 一格
+    /// <summary>★ 细节（草）分辨率**必须跟着尺度走**：它是"每米几格"的密度。
+    /// 200m 还写 512 就是每 0.39m 一格 × 每格 2~3 株 = 每平米 8 株草 ✗（糊成一片还烧显卡）</summary>
+    const int 细节分辨率 = 256;                 // 200m/255 ≈ 0.78m 一格（和原来的密度一致）
 
     const int 种子 = 20260927;
+
+    /// <summary>把"按 1 尺度写的"坐标数组整体缩放（位置类数据全走这里，改 尺度 就全图跟着变）</summary>
+    static Vector2[] 乘(Vector2[] a, float k)
+    {
+        var r = new Vector2[a.Length];
+        for (int i = 0; i < a.Length; i++) r[i] = a[i] * k;
+        return r;
+    }
+    static float[] 乘(float[] a, float k)
+    {
+        var r = new float[a.Length];
+        for (int i = 0; i < a.Length; i++) r[i] = a[i] * k;
+        return r;
+    }
 
     // ------------------------------------------------------------ 河流
 
@@ -66,7 +97,7 @@ public static class SectWildernessBuilder
     ///   第一版在北段 45m 只用了一个点 → 水面变成一条 45m 长的大斜坡 ✗
     ///   现在按 ~25m 一个点铺开，落差摊到很多段上，才是一条"溪"而不是"滑梯"。
     /// </summary>
-    static readonly Vector2[] 河点 =
+    static readonly Vector2[] 河点 = 乘(new[]
     {
         new Vector2(-196f,  204f), new Vector2(-170f,  186f), new Vector2(-140f,  170f),
         new Vector2(-112f,  150f), new Vector2( -92f,  124f), new Vector2( -84f,   96f),
@@ -75,39 +106,40 @@ public static class SectWildernessBuilder
         new Vector2(   4f,  -50f), new Vector2(  30f,  -50f), new Vector2(  56f,  -58f),
         new Vector2(  78f,  -78f), new Vector2(  92f, -104f), new Vector2( 100f, -132f),
         new Vector2( 116f, -160f), new Vector2( 150f, -186f), new Vector2( 196f, -206f),
-    };
+    }, 尺度);
 
-    /// <summary>主河道每个点的**半宽**（m）：中间那段 16m 就是"水潭"</summary>
-    static readonly float[] 河半宽 =
+    /// <summary>主河道每个点的**半宽**（m）：中间那段 16m 就是"水潭"。
+    /// 宽度只按 0.8 缩（不是 0.5）—— 河宽是"物理量"，缩太狠就成小水沟了</summary>
+    static readonly float[] 河半宽 = 乘(new[]
     {
         3.0f, 3.2f, 3.4f, 3.6f, 3.8f, 4.0f, 4.2f, 4.6f, 5.0f, 5.4f, 6.0f,
         6.6f, 7.4f, 16.0f, 8.0f, 6.6f, 5.6f, 4.8f, 4.0f, 3.4f, 3.0f,
-    };
+    }, 0.8f);
 
     /// <summary>支流：从东北山坳下来汇入主河（源头很细 → 汇入口变宽）。
     /// 最后一个点**故意落在主河的河点上**，两条水面才会真的接上</summary>
-    static readonly Vector2[] 支流点 =
+    static readonly Vector2[] 支流点 = 乘(new[]
     {
         new Vector2(76f, 104f), new Vector2(52f, 72f), new Vector2(26f, 44f), new Vector2(0f, 20f),
         new Vector2(-26f, -6f), new Vector2(-44f, -26f), new Vector2(-48f, -30f),
-    };
-    static readonly float[] 支流半宽 = { 1.2f, 1.6f, 2.0f, 2.4f, 2.7f, 2.9f, 3.0f };
+    }, 尺度);
+    static readonly float[] 支流半宽 = 乘(new[] { 1.2f, 1.6f, 2.0f, 2.4f, 2.7f, 2.9f, 3.0f }, 0.8f);
 
     const float 河深 = 2.6f;                   // 河床比水面低多少
     const float 渡口浅 = 0.9f;                 // 路跨过河时，河床抬到什么程度（0.9 = 抬掉 90% 深度 → 一片浅滩）
 
     // ------------------------------------------------------------ 林窗（没有树的空地）
 
-    static readonly Vector2[] 空地点 =
+    static readonly Vector2[] 空地点 = 乘(new[]
     {
         new Vector2(-78f, -84f), new Vector2(72f, 66f), new Vector2(-126f, 34f),
         new Vector2(104f, -44f), new Vector2(18f, 124f), new Vector2(-24f, -142f),
-    };
-    static readonly float[] 空地半 = { 20f, 24f, 18f, 22f, 24f, 20f };
+    }, 尺度);
+    static readonly float[] 空地半 = 乘(new[] { 20f, 24f, 18f, 22f, 24f, 20f }, 尺度);
 
     /// <summary>谷地中心留一大片**草甸**（不放林团）：玩家在这儿能看见天，也是视觉上的"呼吸口"</summary>
-    static readonly Vector2 草甸心 = new Vector2(-6f, -6f);
-    const float 草甸半 = 46f;
+    static readonly Vector2 草甸心 = new Vector2(-6f, -6f) * 尺度;
+    const float 草甸半 = 46f * 尺度;
 
     // ------------------------------------------------------------ 刷怪区（用户要的留白）
 
@@ -117,17 +149,24 @@ public static class SectWildernessBuilder
     /// 场景里还会生成同名空物体 + 线框 gizmo 标出来，之后往那儿摆刷怪点即可。
     /// 位置是挑"环路围出来的地块里、彼此隔得开"的点，都离主干道有一段距离。
     /// </summary>
-    static readonly Vector2[] 刷怪区 =
+    static readonly Vector2[] 刷怪区 = 乘(new[]
     {
         new Vector2(-58f, -56f), new Vector2(58f, 48f),
         new Vector2(-72f, 24f), new Vector2(34f, -74f),
-    };
-    const float 刷怪区半 = 26f;
+    }, 尺度);
+
+    /// <summary>
+    /// 刷怪区半径。★ **12m，不跟地图尺度走** —— 这是**按角色定的**：
+    ///   角色高 1.8m、相机一屏只看到 28~40m 见方 → 刷怪区直径 24m，
+    ///   正好"整片区域都在屏幕里"，怪不会跑到视野外面去。
+    ///   原来写 26m（直径 52m）是**两屏还多**，怪一多就散到看不见的地方 ✗（用户问「刷怪区应该设置的多大」）
+    /// </summary>
+    const float 刷怪区半 = 12f;
 
     // ------------------------------------------------------------ 边界
 
-    const float 谷底边 = 132f;                 // 这个半径以内是谷地，以外开始起山
-    const float 山高 = 20f;                    // 最外圈抬多高（挡住地图边界，别让玩家看见虚空）
+    const float 谷底边 = 132f * 尺度;           // 这个半径以内是谷地，以外开始起山
+    const float 山高 = 15f;                    // 最外圈抬多高（挡住地图边界，别让玩家看见虚空）
 
     const string Env2 = "Assets/resources/Environment2";
     const string Env1 = "Assets/resources/Environment1";
@@ -151,8 +190,8 @@ public static class SectWildernessBuilder
     static readonly List<线> 路网 = new List<线>();
     static 线 主河, 支河;
 
-    /// <summary>平滑高度场（8m 一格）：路高、水位都从它采样 —— 它的作用就是把地形"低通滤波"</summary>
-    const float 平滑格 = 8f;
+    /// <summary>平滑高度场（8m 一格 @尺度1）：路高、水位都从它采样 —— 它的作用就是把地形"低通滤波"</summary>
+    const float 平滑格 = 8f * 尺度;
     static int 平滑数X, 平滑数Z;
     static float[,] 平滑场;
 
@@ -211,40 +250,41 @@ public static class SectWildernessBuilder
                 float a = i / (float)段数 * Mathf.PI * 2f;
                 float r = 132f + 20f * Mathf.Sin(a * 2f + 0.6f) + 9f * Mathf.Sin(a * 3f + 2.3f)
                                 + 6f * Mathf.Sin(a * 5f + 1.1f);
-                pts.Add(new Vector2(Mathf.Cos(a) * r * 1.08f, Mathf.Sin(a) * r));
+                pts.Add(new Vector2(Mathf.Cos(a) * r * 1.08f, Mathf.Sin(a) * r) * 尺度);
             }
-            路网.Add(new 线 { 名 = "环路", 点 = pts.ToArray(), 宽系数 = 2.7f, 强度 = 0.92f });
+            路网.Add(new 线 { 名 = "环路", 点 = pts.ToArray(), 宽系数 = 1.9f, 强度 = 0.92f });
         }
 
         // ---- 分支路 ----
-        // 宗门道：环路北边 → 一直走出地图北缘（这个场景就是"宗门外面"，所以这条路通向宗门）
-        路网.Add(new 线 { 名 = "宗门道", 宽系数 = 2.4f, 强度 = 0.9f, 点 = new[]
+        // ★★ 路宽是**按角色定的**，不跟地图尺度走（用户问「道路应该是一个怎么样的尺寸？」）：
+        //   角色高 1.8m；相机默认一屏 28~40m 见方。
+        //   · 主干道（环路）半宽 ~1.9m → 路面 2.7~4.9m：两个人并行 + 一辆板车，占屏幕 10~15% ✓
+        //   · 分支路 1.1~1.6m 半宽 → 2.2~4.1m：走一条人踩出来的土路 ✓
+        //   · 猎径/野径 0.55~0.65m 半宽 → 0.9~1.7m：一条兽径，草从两边夹过来 ✓
+        //   （原来 `宽系数` 还是"乘数"语义，环路算出来 6.2~15.4m = 四车道，一屏全被路占满 ✗）
+        路网.Add(new 线 { 名 = "宗门道", 宽系数 = 1.6f, 强度 = 0.9f, 点 = new[]
         {
-            环上(96f), new Vector2(10f, 152f), new Vector2(6f, 178f), new Vector2(3f, 202f),
+            环上(96f), new Vector2(10f, 152f) * 尺度, new Vector2(6f, 178f) * 尺度, new Vector2(3f, 202f) * 尺度,
         }});
-        // 渡口：环路东侧 → 水潭边（到岸边就停，不过河）
-        路网.Add(new 线 { 名 = "渡口路", 宽系数 = 1.9f, 强度 = 0.82f, 点 = new[]
+        路网.Add(new 线 { 名 = "渡口路", 宽系数 = 1.15f, 强度 = 0.82f, 点 = new[]
         {
-            环上(-16f), new Vector2(74f, -34f), new Vector2(60f, -46f), new Vector2(50f, -50f),
+            环上(-16f), new Vector2(74f, -34f) * 尺度, new Vector2(60f, -46f) * 尺度, new Vector2(50f, -50f) * 尺度,
         }});
-        // 林间空地：环路西南 → 林窗（那片空地是"人与自然"的集散地）
-        路网.Add(new 线 { 名 = "空地路", 宽系数 = 1.9f, 强度 = 0.8f, 点 = new[]
+        路网.Add(new 线 { 名 = "空地路", 宽系数 = 1.15f, 强度 = 0.8f, 点 = new[]
         {
-            环上(200f), new Vector2(-96f, -74f), new Vector2(-84f, -86f),
+            环上(200f), new Vector2(-96f, -74f) * 尺度, new Vector2(-84f, -86f) * 尺度,
         }});
-        // 上山路：环路东北 → 坡上（能俯瞰整片林子）
-        路网.Add(new 线 { 名 = "上山路", 宽系数 = 1.7f, 强度 = 0.75f, 点 = new[]
+        路网.Add(new 线 { 名 = "上山路", 宽系数 = 0.95f, 强度 = 0.75f, 点 = new[]
         {
-            环上(58f), new Vector2(112f, 92f), new Vector2(128f, 112f), new Vector2(132f, 126f),
+            环上(58f), new Vector2(112f, 92f) * 尺度, new Vector2(128f, 112f) * 尺度, new Vector2(132f, 126f) * 尺度,
         }});
-        // 猎径：淡（强度低）—— 走进林子就淡掉，是"人/兽踩出来的"
-        路网.Add(new 线 { 名 = "猎径", 宽系数 = 1.1f, 强度 = 0.5f, 点 = new[]
+        路网.Add(new 线 { 名 = "猎径", 宽系数 = 0.65f, 强度 = 0.5f, 点 = new[]
         {
-            环上(148f), new Vector2(-34f, 86f), new Vector2(-18f, 74f),
+            环上(148f), new Vector2(-34f, 86f) * 尺度, new Vector2(-18f, 74f) * 尺度,
         }});
-        路网.Add(new 线 { 名 = "野径", 宽系数 = 1.0f, 强度 = 0.42f, 点 = new[]
+        路网.Add(new 线 { 名 = "野径", 宽系数 = 0.55f, 强度 = 0.42f, 点 = new[]
         {
-            环上(300f), new Vector2(84f, -118f), new Vector2(66f, -140f),
+            环上(300f), new Vector2(84f, -118f) * 尺度, new Vector2(66f, -140f) * 尺度,
         }});
 
         // ---- 平滑高度场（8m 一格）----
@@ -272,8 +312,12 @@ public static class SectWildernessBuilder
             }
 
         // ---- 河：水位 = 平滑高度 − 0.9，再平滑 + 强制单调下降（水不能往高处流）----
-        主河 = new 线 { 名 = "主河", 点 = 河点, 半宽 = 河半宽, 值 = 算水位(河点, -0.9f) };
-        支河 = new 线 { 名 = "支流", 点 = 支流点, 半宽 = 支流半宽, 值 = 算水位(支流点, -0.9f) };
+        // ★ 先**加密**河点（~14m 一个）并给宽度加低频噪声：岸线才会自然弯弯曲曲。
+        //   水位、刻槽、水面带子**全都用这一份加密后的数据**，所以水边和岸线严丝合缝 ✓
+        主河 = 加密河("主河", 河点, 河半宽, 0f);
+        主河.值 = 算水位(主河.点, -0.9f);
+        支河 = 加密河("支流", 支流点, 支流半宽, 41f);
+        支河.值 = 算水位(支河.点, -0.9f);
         // 支流汇入口对齐主河水位（否则两条水面接不上，会看见一道"水墙"）。
         // ★ 汇入点是**算出来**的（取离支流末端最近的主河点），别写死下标 —— 河道一改就错位
         {
@@ -305,7 +349,35 @@ public static class SectWildernessBuilder
         float a = 度 * Mathf.Deg2Rad;
         float r = 132f + 20f * Mathf.Sin(a * 2f + 0.6f) + 9f * Mathf.Sin(a * 3f + 2.3f)
                         + 6f * Mathf.Sin(a * 5f + 1.1f);
-        return new Vector2(Mathf.Cos(a) * r * 1.08f, Mathf.Sin(a) * r);
+        return new Vector2(Mathf.Cos(a) * r * 1.08f, Mathf.Sin(a) * r) * 尺度;
+    }
+
+    /// <summary>
+    /// 把河点**加密**到 ~14m 一个，并给半宽乘上低频噪声（±18%）。
+    /// 为什么必须加密：水面带子原来是按原始 21 个点连直线，一条 40m 长的边就是**一根直线**，
+    /// 看着像人工渠 ✗；加密 + 宽度噪声之后，水边是一条自然弯曲的线 ✓
+    /// ★ 刻槽和画水面用的是**同一份**数据，水边才能正好落在岸线上（见 <see cref="算高度"/>）
+    /// </summary>
+    static 线 加密河(string 名, Vector2[] 点, float[] 宽, float 噪声偏移)
+    {
+        var 新点 = new List<Vector2>();
+        var 新宽 = new List<float>();
+        for (int i = 0; i < 点.Length - 1; i++)
+        {
+            float 长 = Vector2.Distance(点[i], 点[i + 1]);
+            int 段 = Mathf.Max(1, Mathf.RoundToInt(长 / 14f));
+            for (int k = 0; k < 段; k++)
+            {
+                float t = k / (float)段;
+                float 沿程 = (i + t) * 13.7f + 噪声偏移;
+                float n = Mathf.PerlinNoise(沿程 * 0.09f, 3.3f) - 0.5f;
+                新点.Add(Vector2.Lerp(点[i], 点[i + 1], t));
+                新宽.Add(Mathf.Max(1.0f, Mathf.Lerp(宽[i], 宽[i + 1], t) * (1f + n * 0.36f)));
+            }
+        }
+        新点.Add(点[点.Length - 1]);
+        新宽.Add(宽[宽.Length - 1]);
+        return new 线 { 名 = 名, 点 = 新点.ToArray(), 半宽 = 新宽.ToArray() };
     }
 
     /// <summary>
@@ -356,17 +428,18 @@ public static class SectWildernessBuilder
     {
         float h = 噪声(x, z) * 6.5f;
 
-        // 几个小丘（让地图有"藏东西的地方"）
-        h += 丘(x, z, 44f, -78f, 30f, 7.5f);
-        h += 丘(x, z, -118f, 62f, 36f, 9.0f);
-        h += 丘(x, z, 126f, 118f, 32f, 8.5f);
-        h += 丘(x, z, -132f, -108f, 34f, 7.0f);
+        // 几个小丘（让地图有"藏东西的地方"）。★ 位置和半径都跟尺度走，高度不缩 ——
+        //   否则地图减半后这几座丘会把整个谷地占满 ✗
+        h += 丘(x, z, 44f * 尺度, -78f * 尺度, 30f * 尺度, 7.5f);
+        h += 丘(x, z, -118f * 尺度, 62f * 尺度, 36f * 尺度, 9.0f);
+        h += 丘(x, z, 126f * 尺度, 118f * 尺度, 32f * 尺度, 8.5f);
+        h += 丘(x, z, -132f * 尺度, -108f * 尺度, 34f * 尺度, 7.0f);
 
         // 四周环山：谷底之外慢慢抬起来，把野外围成一个山谷（也挡住地图边界）。
         // ★ 用 smoothstep 而不是 山³：立方会在中段突然拔起 → 河从山口下来时落差全挤在一两段上，
         //   水面变成一条大斜坡 ✗（第一版就是）。smoothstep 的过渡带长得多。
         float d = new Vector2(x * 0.92f, z).magnitude;
-        h += Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(谷底边, 202f, d)) * 山高;
+        h += Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(谷底边, 202f * 尺度, d)) * 山高;
 
         return h;
     }
@@ -379,21 +452,24 @@ public static class SectWildernessBuilder
         return 高 * t * t * (3f - 2f * t);
     }
 
+    /// <summary>地形起伏噪声。★ 频率**除以尺度**：噪声是"在世界坐标上"采的，
+    /// 地图减半而频率不变的话，同一片起伏在地图上就变成两倍大 → 看着又平又笨 ✗</summary>
     static float 噪声(float x, float z)
     {
-        float a = Mathf.PerlinNoise(x * 0.011f + 21.3f, z * 0.011f + 9.7f) - 0.5f;
-        float b = Mathf.PerlinNoise(x * 0.033f + 7.1f, z * 0.033f + 23.2f) - 0.5f;
-        float c = Mathf.PerlinNoise(x * 0.095f + 15.5f, z * 0.095f + 4.2f) - 0.5f;
+        float k = 1f / 尺度;
+        float a = Mathf.PerlinNoise(x * 0.011f * k + 21.3f, z * 0.011f * k + 9.7f) - 0.5f;
+        float b = Mathf.PerlinNoise(x * 0.033f * k + 7.1f, z * 0.033f * k + 23.2f) - 0.5f;
+        float c = Mathf.PerlinNoise(x * 0.095f * k + 15.5f, z * 0.095f * k + 4.2f) - 0.5f;
         return a * 1.6f + b * 0.7f + c * 0.22f;
     }
 
-    /// <summary>低频噪声（0~1）：控制**路宽摆动**，波长几十米</summary>
+    /// <summary>低频噪声（0~1）：控制**路宽摆动**，波长几十米（也跟着尺度走）</summary>
     static float 路噪(float x, float z)
-        => Mathf.PerlinNoise(x * 0.045f + 31.7f, z * 0.045f + 17.3f);
+        => Mathf.PerlinNoise(x * 0.045f / 尺度 + 31.7f, z * 0.045f / 尺度 + 17.3f);
 
     /// <summary>中频噪声（0~1）：控制路"被踩出来的深浅"——有的地方磨得发亮、有的地方还剩草</summary>
     static float 磨损(float x, float z)
-        => Mathf.PerlinNoise(x * 0.16f + 5.1f, z * 0.16f + 8.8f);
+        => Mathf.PerlinNoise(x * 0.16f / 尺度 + 5.1f, z * 0.16f / 尺度 + 8.8f);
 
     // ============================================================ 查询：路 / 河 / 空地 / 林密
 
@@ -487,17 +563,18 @@ public static class SectWildernessBuilder
 
         // ① + ② 候选点：先建好路网，再看"哪里是路中间的空档"
         var 候选 = new List<Vector2>();
-        const float 步距 = 20f;
+        // ★ 点阵间距**按尺度走**：400m 用 20m 合适，缩到 200m 还用 20m 就只剩十几个候选点 ✗
+        const float 步距 = 20f * 尺度;
         for (float z = 地形Z0 + 26f; z < 地形Z0 + 地形边长 - 26f; z += 步距)
             for (float x = 地形X0 + 26f; x < 地形X0 + 地形边长 - 26f; x += 步距)
             {
-                var p = new Vector2(x + ((float)rng.NextDouble() - 0.5f) * 11f,
-                                    z + ((float)rng.NextDouble() - 0.5f) * 11f);
-                if (查询路(p, out _, out _) < 17f) continue;               // ★ 路是地块边界
+                var p = new Vector2(x + ((float)rng.NextDouble() - 0.5f) * 11f * 尺度,
+                                    z + ((float)rng.NextDouble() - 0.5f) * 11f * 尺度);
+                if (查询路(p, out _, out _) < 11f) continue;               // ★ 路是地块边界
                 float 离河 = 查询河(p, out _, out float 半宽);
-                if (离河 < 半宽 + 15f) continue;                            // 河岸留给护岸林，不放团
+                if (离河 < 半宽 + 10f) continue;                            // 河岸留给护岸林，不放团
                 if (空地权(p) > 0.18f) continue;                            // 草甸/林窗/刷怪区不放团
-                if (new Vector2(p.x * 0.92f, p.y).magnitude > 176f) continue;  // 别爬上山
+                if (new Vector2(p.x * 0.92f, p.y).magnitude > 176f * 尺度) continue;  // 别爬上山
                 候选.Add(p);
             }
 
@@ -509,19 +586,19 @@ public static class SectWildernessBuilder
         }
         foreach (var c in 候选)
         {
-            if (林团表.Count >= 40) break;
+            if (林团表.Count >= 46) break;
             bool 太近 = false;
             foreach (var t in 林团表)
-                if (Vector2.Distance(t.心, c) < 30f) { 太近 = true; break; }
+                if (Vector2.Distance(t.心, c) < 20f * 尺度) { 太近 = true; break; }
             if (太近) continue;
 
             float 离河 = 查询河(c, out _, out _);
+            // ★ 生境判定的半径也**必须按尺度走**：200m 的地图上"离河 60m"等于整张图都是水边 ✗
             int 种;
-            if (离河 < 60f) 种 = (rng.NextDouble() < 0.75) ? 3 : 5;         // 水边：樟林 / 桃林
-            else if (c.y > 62f) 种 = (rng.NextDouble() < 0.7) ? 0 : 2;       // 北坡：松 / 古树
-            else if (c.x > 66f) 种 = (rng.NextDouble() < 0.6) ? 4 : 1;       // 东坡：竹 / 阔叶
-            else if (c.x < -66f) 种 = (rng.NextDouble() < 0.6) ? 1 : 6;      // 西坡：阔叶 / 混交
-            else 种 = (rng.NextDouble() < 0.6) ? 6 : 1;
+            if (离河 < 60f * 尺度) 种 = (rng.NextDouble() < 0.84) ? 3 : 4;  // 水边：水边林为主，桃林点缀
+            else if (c.y > 62f * 尺度) 种 = (rng.NextDouble() < 0.7) ? 0 : 2;  // 北坡：松 / 古树
+            else if (Mathf.Abs(c.x) > 66f * 尺度) 种 = (rng.NextDouble() < 0.6) ? 1 : 5;
+            else 种 = (rng.NextDouble() < 0.6) ? 5 : 1;                       // 谷中：混交 / 阔叶
 
             林团表.Add(new 林团
             {
@@ -556,7 +633,7 @@ public static class SectWildernessBuilder
     /// <summary>该点属于哪个林团的主树种（取"权重最大"的那个团）</summary>
     static int 主树种(Vector2 p)
     {
-        int 种 = 6; float 最大 = -1f;
+        int 种 = 林型池.Length - 1; float 最大 = -1f;
         foreach (var t in 林团表)
         {
             float d = Vector2.Distance(p, t.心);
@@ -630,12 +707,12 @@ public static class SectWildernessBuilder
 
                 // ① 路：压向**平滑高度**（不是 0）→ 路贴着山势走，又平整能走
                 float 离路 = 查询路(p, out _, out float 路面高);
-                if (离路 < 9f)
+                if (离路 < 6.5f)
                 {
-                    float 权 = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(9f, 0.6f, 离路));
+                    float 权 = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(6.5f, 0.6f, 离路));
                     h = Mathf.Lerp(h, 路面高, 权);
                 }
-                bool 在路口 = 离路 < 5.5f;
+                bool 在路口 = 离路 < 3.5f;
 
                 // ② 河：先按"河谷"往下缓，再刻出河槽；都在最后做（放前面会被路压平覆盖掉）
                 float 离河 = 查询河(p, out float 水高, out float 半宽);
@@ -645,15 +722,39 @@ public static class SectWildernessBuilder
                     float 谷底 = 水高 + 1.8f;
                     h = Mathf.Min(h, Mathf.Lerp(h, 谷底, 谷权 * 0.9f));      // ★ Min：只往下削，不往上填
                 }
-                // ★ 河槽要**宽而缓**：第一版只用了 半宽+3 做过渡（≈8m 内掉 2.6m）→
-                //   看起来像一条水泥渠 ✗。现在过渡带到 半宽×2.6+9（≈20m），
-                //   水面坐在一个浅碗里，两岸是缓坡，才像天然河道 ✓
-                float 槽外 = 半宽 * 2.6f + 9f;
-                if (离河 < 槽外)
+
+                // ★★ 河槽：**水面正好落在 半宽 处**的那条剖面
+                //
+                //   第一版的剖面对不上：刻槽过渡带是 半宽×2.6+9（≈20m），
+                //   于是离中心 13m 的地方河床还在水面**以下** 2m 多，
+                //   但水面带子只有 半宽（≈5m）宽 → **露出一大片"水下但不积水"的河床** ✗
+                //   用户就是看到这个说「水现在在这个地图中的表现好像不是很贴合」。
+                //
+                //   现在改成解析剖面：`h = 水高 − 河深·(1 − (d/半宽)²)`，d = 半宽 时正好等于水高 ✓
+                //   水面带子再稍微加宽 0.4m 越过去一点，多出来的部分会被地形挡住 → 严丝合缝 ✓
+                float h0 = h;                                   // 刻河前的原地形
+                float 深 = 河深 * (在路口 ? (1f - 渡口浅) : 1f);   // 路跨河处留一片浅滩
+                if (离河 < 半宽)
                 {
-                    float 权 = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(槽外, 半宽 * 0.35f, 离河));
-                    float 深 = 河深 * (在路口 ? (1f - 渡口浅) : 1f);          // 路跨河处留一片浅滩
-                    h = Mathf.Min(h, Mathf.Lerp(h, 水高 - 深, 权));
+                    float t = 离河 / 半宽;
+                    h = Mathf.Min(h0, 水高 - 深 * (1f - t * t));
+                }
+                else
+                {
+                    // 河岸：从水面(水高)平滑抬回原地形，分两段过渡，免得出现一圈硬边
+                    float 岸宽 = 半宽 * 1.6f + 7f;
+                    if (离河 < 半宽 + 岸宽)
+                    {
+                        float t = (离河 - 半宽) / 岸宽;
+                        float 权 = Mathf.SmoothStep(1f, 0f, t);
+                        h = Mathf.Min(h0, Mathf.Lerp(h0, 水高 + 1.0f, 权 * 0.92f));
+                    }
+                    else if (离河 < 半宽 + 岸宽 + 30f)
+                    {
+                        float t = (离河 - 半宽 - 岸宽) / 30f;
+                        float 权 = Mathf.SmoothStep(1f, 0f, t) * 0.45f;
+                        h = Mathf.Min(h0, Mathf.Lerp(h0, 水高 + 3.0f, 权));
+                    }
                 }
 
                 高[j, i] = Mathf.Clamp01((h + 地形基准) / 地形高);
@@ -686,17 +787,19 @@ public static class SectWildernessBuilder
                 // ---- 土路：宽度/深浅都带噪声（村庄那版用户认可的手感，别往明显里调）----
                 float 土 = 0f;
                 float 离路 = 查询路(p, out 线 哪条, out _);
-                if (离路 < 10f && 哪条 != null)
+                if (离路 < 7f && 哪条 != null)
                 {
-                    float 半宽路 = (1.15f + 路噪(wx, wz) * 1.7f) * 哪条.宽系数;
-                    float 权 = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(半宽路 + 2.6f, 半宽路 * 0.3f, 离路));
+                    // ★ 半宽 = 宽系数 × (0.72~1.28)：宽系数现在就是"米"（见 准备() 里的说明）
+                    float 半宽路 = 哪条.宽系数 * (0.72f + 0.56f * 路噪(wx, wz));
+                    float 权 = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(半宽路 + 2.0f, 半宽路 * 0.3f, 离路));
                     权 *= 0.55f + 0.45f * 磨损(wx, wz);
                     土 = Mathf.Max(土, Mathf.Clamp01(权) * 哪条.强度);
                 }
 
                 // ---- 山口石径：宗门道最后那一截铺碎石（"到宗门了"的信号）----
-                if (wz > 168f && Mathf.Abs(wx - 6f) < 14f)
-                    沙 = Mathf.Max(沙, Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(14f, 5f, Mathf.Abs(wx - 6f))) * 0.8f);
+                if (wz > 168f * 尺度 && Mathf.Abs(wx - 6f * 尺度) < 14f * 尺度)
+                    沙 = Mathf.Max(沙, Mathf.SmoothStep(0f, 1f,
+                        Mathf.InverseLerp(14f * 尺度, 5f * 尺度, Mathf.Abs(wx - 6f * 尺度))) * 0.8f);
 
                 // ---- 林下地被：林子密的地方地表发暗（有机质/落叶），是"生态感"的关键一笔 ----
                 float 林 = 林密(p) * 0.78f;
@@ -773,7 +876,7 @@ public static class SectWildernessBuilder
                 float 离路 = 查询路(p, out _, out _);
 
                 if (离河 <= 半宽 + 0.5f) continue;                 // 水里不长
-                if (离路 < 2.3f) continue;                          // 路面上不长草
+                if (离路 < 1.8f) continue;                          // 路面上不长草（路窄了，这条也跟着收）
 
                 int 密;
                 float 林 = 林密(p);
@@ -860,9 +963,35 @@ public static class SectWildernessBuilder
     {
         // ★ 水色要**深**、高光要**弱**：第一版 (0.12,0.30,0.33,0.88) + 光滑 0.35 在俯视/低角度看
         //   是一片惨白的反光，像积水的水泥地 ✗（平行光 + 大量水平面 = 大面积镜面高光）
-        var 材质 = 建纯色水材质("野河水面", new Color(0.085f, 0.235f, 0.275f, 0.94f), 0.10f);
+        // ★ 再加一张**水边渐变的 alpha 贴图**（见 建水边渐变）：水边淡出，
+        //   不然水面末端是一条刀切的直线，跟岸线对不上、"贴不住" ✗
+        var 材质 = 建纯色水材质("野河水面", new Color(0.070f, 0.175f, 0.205f, 0.92f), 0.05f);
+        材质.mainTexture = 建水边渐变();
+        AssetDatabase.SaveAssets();
         建水带(父, "河流", 主河, 材质, "河面", 报告);
         建水带(父, "支流", 支河, 材质, "支流面", 报告);
+    }
+
+    /// <summary>横向 alpha 渐变（中间实、两边淡）：水面带子的 UV.u 正好是"横跨河面"，直接拿来当遮罩 ✓</summary>
+    static Texture2D 建水边渐变()
+    {
+        var t = new Texture2D(16, 4, TextureFormat.RGBA32, false);
+        for (int y = 0; y < 4; y++)
+            for (int x = 0; x < 16; x++)
+            {
+                float u = x / 15f;
+                float a = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(0f, 0.28f, u))
+                        * Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(1f, 0.72f, u));
+                t.SetPixel(x, y, new Color(1f, 1f, 1f, Mathf.Lerp(0.06f, 1f, a)));
+            }
+        t.Apply();
+        var 路径 = 资产目录 + "/水边渐变.png";
+        System.IO.File.WriteAllBytes(路径, t.EncodeToPNG());
+        Object.DestroyImmediate(t);
+        AssetDatabase.ImportAsset(路径, ImportAssetOptions.ForceUpdate);
+        var 读 = AssetDatabase.LoadAssetAtPath<Texture2D>(路径);
+        if (读 != null) { 读.wrapMode = TextureWrapMode.Clamp; 读.filterMode = FilterMode.Bilinear; }
+        return 读;
     }
 
     /// <summary>
@@ -877,7 +1006,10 @@ public static class SectWildernessBuilder
             Vector2 前 = 河.点[Mathf.Max(0, i - 1)], 后 = 河.点[Mathf.Min(河.点.Length - 1, i + 1)];
             Vector2 切 = (后 - 前).normalized;
             var 法 = new Vector2(-切.y, 切.x);
-            float 半 = Mathf.Max(0.6f, 河.半宽[i] - 0.5f);   // 稍微收一点，别让水面盖住河岸
+            // ★ 稍微**越过**岸线一点：多出来的部分被地形挡住，接缝就看不出来了。
+            //   1.12 倍 + 0.9m 是有讲究的 —— 高度图是 0.39m 一格，插值出来的地形在"名义岸线"上
+            //   可能比水面低 0.5m 左右（实测），这点富余刚好盖住，而多出来的边又被 alpha 渐变淡掉了 ✓
+            float 半 = 河.半宽[i] * 1.12f + 0.9f;
             左.Add(new Vector3(河.点[i].x + 法.x * 半, 河.值[i], 河.点[i].y + 法.y * 半));
             右.Add(new Vector3(河.点[i].x - 法.x * 半, 河.值[i], 河.点[i].y - 法.y * 半));
         }
@@ -963,8 +1095,8 @@ public static class SectWildernessBuilder
                         var 位 = 点 + 法 * (偏 * 侧);
                         if (放一株草(rng, 组, 位, 0.8f, 1.7f)) 苇++;
                     }
-                    // 荷叶：只在"水潭"那一段（半宽 > 10）
-                    if (半 > 10f && rng.NextDouble() < 0.6)
+                    // 荷叶：只在"水潭"那一段（半宽 > 8m）
+                    if (半 > 8f && rng.NextDouble() < 0.6)
                     {
                         float 偏 = ((float)rng.NextDouble() * 2f - 1f) * (半 - 2.5f);
                         var 位 = 点 + 法 * 偏;
@@ -1015,7 +1147,15 @@ public static class SectWildernessBuilder
     /// <summary>
     /// 树种池。<c>林型池[i]</c> 就是第 i 种"林型"里能用的树（各带一个**目标高**区间）。
     /// ★ 用目标高而不是缩放系数：这些资源原生高度差 3 倍以上，写死系数会有的变巨物、有的看不见。
-    /// ★ 不放蘑菇（用户明确讨厌 `Mogu/*` 那套粉色巨伞）；也不放黄叶/枯树/雪松（要的是**绿**的生态林）。
+    ///
+    /// ★★ 2026-09-27 用户「所有的竹子可以删掉，有些树（比如 environment_tree_purple_001）明显的尺度有问题」
+    ///    → 我把每个资源**原生尺寸**都量了一遍（见《宗门野外生成说明.md》§7），发现的问题：
+    ///    · `qingduanzhu_001_a` **原生只有 1.2m**，我却当树放到 4~7m = **放大 4.7 倍** ✗ → 删（用户也不要竹子）
+    ///    · `purple_001` 原生 6.2m 的树，被当小花草压到 0.5~1.1m = **0.13 倍** ✗ → 删
+    ///    · `kucao_001_a`（"枯草"）原生 **6.6m**，同样被压到 0.13 倍 ✗ → 删
+    ///    · `qihua_002` 原生 **0.1m**，放到 0.5~1m = **放大 7.5 倍** ✗ → 删
+    ///    · `tengman_001_a`（藤蔓）原生 0.4m 高 / 5.2m 宽的一张片，放到 2.4m = 放大 4.8 倍 ✗ → 删
+    ///    教训：**换资源前先量原生尺寸**（`预制高()` 只管高度归一，管不了"这模型本来该多大"）。
     /// </summary>
     static readonly (string 路, float 矮, float 高)[][] 林型池 =
     {
@@ -1029,23 +1169,18 @@ public static class SectWildernessBuilder
         // 2 古树（大树）
         new[] { (Env2 + "/Tree/S1_shu001_tf.prefab", 6.0f, 9.5f),
                 (树目录 + "environment_Tree_dashu_001_a.FBX", 7.0f, 11.0f) },
-        // 3 水边林（★ 不含 `environment_Tree_zhangshu_01_a`：实拍是一棵**苏铁/棕榈状的放射叶**，
-        //   在温带林子里非常出戏，而且它原来占了 780 棵 ✗）
+        // 3 水边林（喜湿的阔叶；原来这里放的是樟/竹，樟是苏铁状、竹原生只有 1.2m，都删了）
         new[] { (树目录 + "environment_Tree_Green_001_a.FBX", 5.0f, 8.0f),
-                (树目录 + "environment_Tree_Green_005_a.FBX", 5.5f, 8.5f),
-                (树目录 + "environment_Tree_qingduanzhu_001_a.FBX", 3.5f, 5.5f) },
-        // 4 竹林
-        new[] { (树目录 + "environment_Tree_qingduanzhu_001_a.FBX", 4.0f, 7.0f) },
-        // 5 桃林（★ 混一半绿树：整团粉太假）
+                (树目录 + "environment_Tree_Green_005_a.FBX", 5.5f, 8.5f) },
+        // 4 桃林（★ 混一半绿树：整团粉太假）
         new[] { (树目录 + "environment_Tree_taoshu_001_a.FBX", 3.5f, 6.0f),
                 (树目录 + "environment_Tree_Green_005_a.FBX", 5.0f, 7.5f) },
-        // 6 混交林
+        // 5 混交林
         new[] { (树目录 + "environment_Tree_songshu_002_d.FBX", 6.0f, 9.5f),
                 (树目录 + "environment_Tree_Green_001_a.FBX", 5.0f, 8.0f),
                 (树目录 + "environment_Tree_Green_005_a.FBX", 5.5f, 8.5f),
                 (Env2 + "/Tree/S1_shu002_tf.prefab", 4.5f, 7.0f),
-                (Env2 + "/Tree/S1_shu001_tf.prefab", 6.0f, 9.0f),
-                (树目录 + "environment_Tree_qingduanzhu_001_a.FBX", 3.5f, 6.0f) },
+                (Env2 + "/Tree/S1_shu001_tf.prefab", 6.0f, 9.0f) },
     };
 
     // ★★ 树种是**实测**筛过的（在一个空场景里逐个渲俯视图、量树冠平均色）：
@@ -1073,8 +1208,9 @@ public static class SectWildernessBuilder
         float 总权 = 0f;
         foreach (var t in 林团表) 总权 += t.半 * t.半 * t.密;
         // ★ 团多、每团少：**总棵数不变**，但覆盖的地块多得多 —— 场景文件大小跟总棵数走，
-        //   而"森林感"跟**团的覆盖面积**走，所以宁可 40 个小团也不要 20 个大团 ✓
-        const int 团内预算 = 1560;
+        //   而"森林感"跟**团的覆盖面积**走，所以宁可多而小，不要少而大 ✓
+        //   地图缩到 200m 之后团数变多（点阵也跟着缩了），每团 40~60 棵正好"树冠连成一片但不糊死"
+        const int 团内预算 = 1500;
         foreach (var t in 林团表)
         {
             int 名额 = Mathf.Max(12, Mathf.RoundToInt(团内预算 * (t.半 * t.半 * t.密) / Mathf.Max(1f, 总权)));
@@ -1141,18 +1277,20 @@ public static class SectWildernessBuilder
         var 已放 = new List<Vector3>();
         int 放了 = 0;
 
+        // (路径, 最矮, 最高) —— 括号里是**原生尺寸**（量过的，别再塞尺寸不对劲的进来）
         var 种类 = new List<(string, float, float)>
         {
-            (Env2 + "/Tree/guanmu_010.prefab", 0.9f, 1.8f),
+            (Env2 + "/Tree/guanmu_010.prefab", 0.9f, 1.8f),                  // 1.8m
             (Env2 + "/Tree/guanmu_012.prefab", 0.9f, 1.8f),
-            (Env2 + "/Tree/guanmu_017.prefab", 1.0f, 2.0f),
+            (Env2 + "/Tree/guanmu_017.prefab", 1.0f, 2.0f),                  // 1.0m
             (Env2 + "/Tree/guanmu_022.prefab", 0.9f, 1.8f),
             (Env2 + "/Tree/guanmu_05.prefab",  0.9f, 1.7f),
             (Env2 + "/Tree/guanmu_024.prefab", 0.9f, 1.7f),
-            (Env2 + "/Tree/YYZmantuoluo001.prefab", 0.8f, 1.5f),
-            (树目录 + "environment_tree_guanmu_001.FBX", 1.0f, 2.2f),
-            (树目录 + "environment_Tree_tengman_001_a.FBX", 1.2f, 2.4f),
-            (Env1 + "/Grass/environment_grass_guanmu_001_a.FBX", 0.7f, 1.4f),
+            (Env2 + "/Tree/YYZmantuoluo001.prefab", 0.8f, 1.5f),             // 1.6m
+            (树目录 + "environment_tree_guanmu_001.FBX", 1.0f, 2.2f),         // 2.1m
+            (Env1 + "/Grass/environment_grass_guanmu_001_a.FBX", 0.7f, 1.4f), // 1.7m
+            // ✗ 删掉 `environment_Tree_tengman_001_a`（藤蔓）：原生只有 **0.4m 高 / 5.2m 宽**，
+            //   是一张"爬藤片"，放到 1.2~2.4m = **放大 4.8 倍**，看着就是一块立起来的画 ✗
         };
         种类.RemoveAll(x => AssetDatabase.LoadAssetAtPath<GameObject>(x.Item1) == null);
 
@@ -1189,13 +1327,17 @@ public static class SectWildernessBuilder
         var 已放 = new List<Vector3>();
         int 放了 = 0;
 
+        // (路径, 最矮, 最高) —— 括号里是**原生尺寸**，全部是"本来就是小草小花"的资源
         var 种类 = new List<(string, float, float)>
         {
-            (树目录 + "environment_tree_qihua_002.FBX", 0.5f, 1.0f),
-            (树目录 + "environment_Tree_yellow flower_001_a.FBX", 0.4f, 0.9f),
-            (树目录 + "environment_tree_purple_001.FBX", 0.5f, 1.1f),
-            (树目录 + "environment_Tree_kucao_001_a.FBX", 0.5f, 1.2f),
-            (Env1 + "/Grass/environment_grass_xiaocao_001_a.FBX", 0.4f, 0.9f),
+            (树目录 + "environment_Tree_yellow flower_001_a.FBX", 0.4f, 0.9f),      // 1.2m 黄花
+            (Env1 + "/Grass/environment_grass_xiaocao_001_a.FBX", 0.4f, 0.9f),      // 1.8m 小草
+            (Env1 + "/Grass/environment_grass_seahaicao_001_a.FBX", 0.6f, 1.2f),    // 2.8m 海草
+            (Env1 + "/Grass/environment_grass_guanmu_002_a.FBX", 0.5f, 1.0f),       // 1.5m
+            // ✗✗ 删掉这三个 —— 用户「有些树（比如 environment_tree_purple_001）明显的尺度有问题」：
+            //   · `purple_001`   原生 **6.2m 的树**，被当花草压到 0.5~1.1m = **0.13 倍** ✗
+            //   · `kucao_001_a`  原生 **6.6m**（名字叫枯草，其实是个大家伙），同样 0.13 倍 ✗
+            //   · `qihua_002`    原生 **0.1m**（10cm 的一张片），放到 0.5~1m = **放大 7.5 倍** ✗
         };
         种类.RemoveAll(x => AssetDatabase.LoadAssetAtPath<GameObject>(x.Item1) == null);
 
@@ -1268,7 +1410,7 @@ public static class SectWildernessBuilder
         for (int 侧 = -1; 侧 <= 1; 侧 += 2)
             for (int k = 0; k < 3; k++)
             {
-                var p = new Vector2(6f + 侧 * (6.5f + k * 2.6f), 186f - k * 5.5f);
+                var p = new Vector2(6f * 尺度 + 侧 * (6.5f + k * 2.6f), 186f * 尺度 - k * 5.5f);
                 var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(Env2 + "/Stone/stone_012.prefab");
                 if (prefab == null) continue;
                 var go = (GameObject)PrefabUtility.InstantiatePrefab(prefab, 组);
@@ -1312,7 +1454,7 @@ public static class SectWildernessBuilder
         if (p.x < 地形X0 + 3f || p.x > 地形X0 + 地形边长 - 3f) return false;
         if (p.y < 地形Z0 + 3f || p.y > 地形Z0 + 地形边长 - 3f) return false;
         if (查询河(p, out _, out float 半宽) < 半宽 + 2.2f) return false;
-        if (查询路(p, out _, out _) < 4.5f) return false;      // 路上/路肩不种
+        if (查询路(p, out _, out _) < 3.2f) return false;      // 路上/路肩不种（路现在只有 2~5m 宽）
         if (在刷怪区(p, 0f)) return false;                      // ★ 刷怪区一棵都不种
         foreach (var q in 已放)
             if ((new Vector2(q.x, q.z) - p).sqrMagnitude < 最小间距 * 最小间距) return false;
@@ -1333,7 +1475,11 @@ public static class SectWildernessBuilder
     static readonly Dictionary<string, float> 原高缓存 = new Dictionary<string, float>();
     static float 预制高(GameObject prefab)
     {
-        if (原高缓存.TryGetValue(prefab.name, out var h)) return h;
+        // ★ 缓存键用**资产路径**，别用 prefab.name：不同目录下重名的资源会串味
+        //   （原名做键的话，第二次会直接返回第一种同名资源的高度 → 缩放整个错掉 ✗）
+        string 键 = AssetDatabase.GetAssetPath(prefab);
+        if (string.IsNullOrEmpty(键)) 键 = prefab.name;
+        if (原高缓存.TryGetValue(键, out var h)) return h;
         var 实例 = (GameObject)Object.Instantiate(prefab);
         实例.transform.position = Vector3.zero;
         实例.transform.rotation = Quaternion.identity;
@@ -1346,7 +1492,7 @@ public static class SectWildernessBuilder
         }
         Object.DestroyImmediate(实例);
         h = 有 ? Mathf.Max(0.05f, b.size.y) : 1f;
-        原高缓存[prefab.name] = h;
+        原高缓存[键] = h;
         return h;
     }
 
