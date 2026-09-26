@@ -173,6 +173,7 @@ public class NpcDialogue : MonoBehaviour
     void Update()
     {
         if (设施 != null && 设施.界面预制体 != null) return;   // 交给 StationInteractor 开
+        if (DialogueUI.正在显示) return;                        // 已经开着对话框，别再抢 F
         if (当前对话中 != null && 当前对话中 != this) return;
         if (Input.GetKeyDown(交互键) && 是最近的可对话目标()) 打开对话();
     }
@@ -207,11 +208,12 @@ public class NpcDialogue : MonoBehaviour
         return 缓存玩家;
     }
 
-    /// <summary>真正打开对话：广播给 UI；没人接就只记一条日志（方便逐步接）</summary>
+    /// <summary>真正打开对话：先广播事件（剧情/任务系统可以接一手），再开对话框</summary>
     public void 打开对话()
     {
-        if (请求对话 == null) { Debug.Log("[对话] 还没有对话框 UI 订阅，暂时只记一条：" + gameObject.name); return; }
-        请求对话(this);
+        var h = 请求对话;
+        if (h != null) h(this);
+        DialogueUI.打开(this);
     }
 
     void OnDisable() { 置身体转向(true); 恢复头(); }

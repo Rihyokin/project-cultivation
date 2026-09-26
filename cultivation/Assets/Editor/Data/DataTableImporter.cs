@@ -153,6 +153,10 @@ public static class DataTableImporter
 
         AssetDatabase.SaveAssets();
 
+        // 对话资产在 Generated 下、运行时读不到 → 顺手摊平成 Resources/对话/对话库.asset
+        try { DialogueDatabaseBuilder.收集(false); }
+        catch (System.Exception e) { report.Append("对话库收集失败: ").Append(e.Message).Append("\n"); }
+
         // ---- 第二遍：解析跨表引用（背包物品 / 掉落物）----
         foreach (var spec in Specs)
         {
