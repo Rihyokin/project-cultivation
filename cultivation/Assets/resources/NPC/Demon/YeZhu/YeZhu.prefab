@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 4032542146362612368}
   - component: {fileID: 8556992107325566285}
   - component: {fileID: 8841647961340341443}
+  - component: {fileID: 6768459309356849976}
   m_Layer: 0
   m_HasEditorInfo: 1
   m_Name: YeZhu
@@ -120,6 +121,7 @@ MonoBehaviour:
   "\u5B9A\u4E49": {fileID: 11400000, guid: 5d9c895203fddf048a8d97aec422ce20, type: 2}
   "\u6BCF\u6B21\u53D7\u51FB\u964D\u597D\u611F": 20
   "\u597D\u611F\u5EA6\u8303\u56F4": {x: -100, y: 100}
+  "\u65E0\u654C": 0
   "\u5F53\u524D\u6C14\u8840": 1225
   "\u5DF2\u6B7B\u4EA1": 0
   "\u8FD0\u884C\u597D\u611F\u5EA6": 0
@@ -172,6 +174,66 @@ CapsuleCollider:
   m_Height: 2.1132536
   m_Direction: 1
   m_Center: {x: -0.022497654, y: 1.0565121, z: -0.21970499}
+--- !u!114 &6768459309356849976
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 100000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ef49314309a63e146b7276e6c6dfb401, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  "\u7D22\u654C\u8303\u56F4": 12
+  "\u8131\u6218\u8303\u56F4": 20
+  "\u9700\u8981\u89C6\u7EBF": 0
+  "\u89C6\u7EBF\u906E\u6321\u5C42":
+    serializedVersion: 2
+    m_Bits: 4294967295
+  "\u884C\u8D70\u500D\u7387": 0.5
+  "\u5954\u8DD1\u500D\u7387": 1
+  "\u8F6C\u5411\u901F\u5EA6": 540
+  "\u6A21\u578B\u671D\u5411\u8865\u507F": 0
+  "\u81EA\u52A8\u8D34\u5730": 1
+  "\u8D34\u5730\u5FAE\u8C03": 0
+  "\u5730\u9762\u5C42":
+    serializedVersion: 2
+    m_Bits: 4294967295
+  "\u524D\u65B9\u63A2\u969C\u8DDD\u79BB": 1.2
+  "\u969C\u788D\u5C42":
+    serializedVersion: 2
+    m_Bits: 4294967295
+  "\u653B\u51FB\u8DDD\u79BB": 3
+  "\u653B\u51FB\u95F4\u9694\u500D\u7387": 1.2
+  "\u653B\u51FB\u65B9\u5F0F": []
+  "\u53D7\u51FB\u786C\u76F4": 0.3
+  "\u53D7\u51FB\u52A8\u753B\u51B7\u5374": 0.45
+  "\u6B7B\u4EA1\u6D88\u6563\u7279\u6548\u8DEF\u5F84": 
+  "\u6B7B\u4EA1\u6D88\u6563\u989C\u8272": {r: 0.8, g: 0.87, b: 1, a: 0.95}
+  "\u6B7B\u4EA1\u6D88\u6563\u7C92\u5B50\u6570": 0
+  "\u6B7B\u4EA1\u6D88\u6563\u7279\u6548\u7F29\u653E": 3
+  "\u6B7B\u4EA1\u6D88\u6563\u7279\u6548\u5B58\u6D3B": 2
+  "\u6B7B\u4EA1\u7C92\u5B50\u88AB\u73A9\u5BB6\u5438\u6536": 1
+  "\u6B7B\u4EA1\u540E\u9500\u6BC1\u5EF6\u8FDF": 3
+  "\u6B7B\u4EA1\u65F6\u5173\u95ED\u78B0\u649E": 1
+  "\u6CA1\u6709\u6B7B\u4EA1\u52A8\u753B\u5C31\u7ACB\u5373\u9690\u85CF\u6A21\u578B": 1
+  "\u5F3A\u5236\u5173\u95EDRootMotion": 1
+  "\u7269\u7406\u57FA\u7840\u547D\u4E2D\u7279\u6548": FX/Hit_Physical
+  "\u6253\u5370\u72B6\u6001\u65E5\u5FD7": 0
+  "\u653B\u51FB\u671F\u95F4\u9501\u5B9A\u671D\u5411": 1
+  "\u7981\u6B62\u8EAB\u4F53\u8F6C\u5411": 0
+  "\u654C\u5BF9\u597D\u611F\u9608\u503C": -10
+  "\u91CD\u65B0\u7D22\u654C\u51B7\u5374": 1.5
+  "\u666E\u653B\u51B7\u5374": 2.5
+  "\u795E\u901A\u51B7\u5374": 10
+  "\u666E\u653B\u500D\u7387": 1
+  "\u795E\u901A\u500D\u7387": 2
+  "\u666E\u653B\u51FA\u624B\u8FDB\u5EA6": 0.5
+  "\u795E\u901A\u51FA\u624B\u8FDB\u5EA6": 0.7
+  "\u666E\u653B\u547D\u4E2D\u7279\u6548": 
+  "\u91CD\u51FB\u547D\u4E2D\u7279\u6548": FX/Hit_Physical_Heavy
 --- !u!1 &100002
 GameObject:
   m_ObjectHideFlags: 0
