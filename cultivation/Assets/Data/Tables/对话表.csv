@@ -14,7 +14,7 @@ dlg_chengnv_03,npc_cunmin_chengnv,3,,我家那口子在镇上做工、半月才�
 dlg_laotou_01,npc_cunmin_laotou,1,,咳咳……年轻人、过来晒晒太阳。人老了、就图个暖和。,立绘/老头村民,,好嘞,不了,,0,0,0,,,0,,1
 dlg_laotou_02,npc_cunmin_laotou,2,,我在这村里住了六十年咯。这山、这水、都还是老样子。,立绘/老头村民,,那真好,不打扰了,,0,0,0,,,0,,1
 dlg_zhengtai_01,npc_cunmin_zhengtai,1,,你你你、你是从山外面来的？外面真的有会飞的人吗？,立绘/正太村民,,有啊,没有,,2,3,0,,,0,冒泡,1.2
-dlg_zhengtai_02,npc_cunmin_zhengtai,2,,哇——！我长大了也要飞！,立绘/正太村民,,加油,看好你哦,,0,0,0,,,0,,1
+dlg_zhengtai_02,npc_cunmin_zhengtai,2,,哇——！我长大了也要飞！,立绘/正太村民,,加油,看好你哦,,0,0,0,,,0,震动,1.3
 dlg_zhengtai_03,npc_cunmin_zhengtai,3,,哼、大人都说我在吹牛。你信不信我？,立绘/正太村民,,信,不信,,0,0,0,,,0,,1
 dlg_pangshu_01,npc_cunmin_pangshu,1,,哎哟、来客人啦！闻见没？锅里炖着山菌、香吧？,立绘/胖叔村民,,香、闻到了,还行吧,,0,0,0,,,0,,1
 dlg_pangshu_02,npc_cunmin_pangshu,2,,嘿嘿、一会儿盛你一碗。别的本事我没有、做饭是真有一手。,立绘/胖叔村民,,多谢款待,那我等着,,0,0,0,,,0,震动,0.5
