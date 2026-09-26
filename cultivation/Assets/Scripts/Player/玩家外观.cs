@@ -26,6 +26,36 @@ public class 玩家外观 : MonoBehaviour
     [Tooltip("【调试/预览用】直接看当前穿的是哪件")]
     public AppearanceDefinition 当前外观;
 
+    [Header("已拥有（靠物品获得，比如「门派便服」）")]
+    [Tooltip("已经拿到手的外观。**用户 2026-09-27**：不靠标记解锁，而是任务发道具、道具使用后获得。\n" +
+             "以后存进存档就按这个列表的 id 存")]
+    public System.Collections.Generic.List<AppearanceDefinition> 已获得
+        = new System.Collections.Generic.List<AppearanceDefinition>();
+
+    /// <summary>这件外观现在拥有吗（默认拥有 或 已经拿到手）</summary>
+    public bool 已拥有(AppearanceDefinition a)
+    {
+        if (a == null) return false;
+        if (a.默认拥有) return true;
+        return 已获得 != null && 已获得.Contains(a);
+    }
+
+    /// <summary>
+    /// 获得一件外观（已经是就不重复加），默认**立刻换上**。
+    /// 由 <see cref="学外观效果"/> 在玩家使用道具时调用。
+    /// </summary>
+    public bool 获得(AppearanceDefinition 外观, bool 立刻装备 = true)
+    {
+        if (外观 == null) return false;
+        if (已获得 == null) 已获得 = new System.Collections.Generic.List<AppearanceDefinition>();
+
+        bool 新的 = !已拥有(外观);
+        if (新的 && !外观.默认拥有) 已获得.Add(外观);
+        if (立刻装备) 装备(外观);
+        Debug.Log("[外观] 获得「" + 外观.DisplayName + "」" + (新的 ? "" : "（早就有了，不重复给）"), 外观);
+        return 新的;
+    }
+
     /// <summary>外观换了（参数是新外观，null = 换回原始网格）</summary>
     public static event System.Action<AppearanceDefinition> 外观变化;
 
