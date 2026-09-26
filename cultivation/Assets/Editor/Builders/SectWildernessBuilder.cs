@@ -1306,7 +1306,7 @@ public static class SectWildernessBuilder
         go.transform.localScale = Vector3.one * (目标高 / 预制高(prefab));
         go.transform.localRotation = Quaternion.Euler(0f, (float)rng.NextDouble() * 360f, 0f);
         go.transform.position = new Vector3(p.x, 地形高度(p), p.y);
-        补树干碰撞(go);
+        补树干碰撞(go, 目标高);
         已放.Add(p);
         用过的[型]++;
         return true;
@@ -1541,18 +1541,91 @@ public static class SectWildernessBuilder
     }
 
     /// <summary>
-    /// 只给树一个**细树干碰撞体**（radius 0.35、高 3m），不是村庄那套"整棵树的大胶囊"。
-    /// 原因：这片林子有 1400 棵，用大胶囊的话**御风/坐骑飞过树林会被树冠一路顶起来** ✗
-    /// （见 开发注意事项 §48.3）；细树干既挡住"穿树而过"，飞过时又基本不受影响 ✓
+    /// ★★ 树干碰撞体。**尺寸必须按"世界尺寸 ÷ 自身缩放"来设**，不能像第一版那样
+    /// 直接 `radius = 0.34f * lossyScale.x` —— CapsuleCollider 的 radius/height 是**局部**尺寸，
+    /// Unity 还会再乘一次物体的缩放，于是世界半径变成 `0.34 × 缩²`：
+    /// 实测 1538 棵树的**世界半径中位数只有 0.19m**（最小 0.026m），
+    /// 而角色 CharacterController 自己的半径是 **0.30m** → 人直接从树里穿过去 ✗✗
+    /// （用户：「没给树加碰撞体，加一下」就是这么来的）
+    ///
+    /// 现在按人尺度定世界尺寸：半径 0.36~0.55m（比角色半径大，撞得上）、
+    /// 高 2.4~4.0m（矮了会被"跨过去"，但比坐骑巡航高度 5.64m 低，飞过树林不会一路被顶起来）。
     /// </summary>
-    static void 补树干碰撞(GameObject go)
+    static void 设树干碰撞(GameObject go, float 树高)
+    {
+        var cap = go.GetComponent<CapsuleCollider>();
+        if (cap == null) cap = go.AddComponent<CapsuleCollider>();
+
+        float 世界半径 = Mathf.Clamp(0.30f + 0.020f * 树高, 0.36f, 0.55f);
+        float 世界高 = Mathf.Clamp(0.40f * 树高, 2.4f, 4.0f);
+
+        // 树干底部：从渲染包围盒底量，这样不管资源原点在脚底还是中心都对
+        bool 有 = false; var b = new Bounds();
+        foreach (var r in go.GetComponentsInChildren<Renderer>(true))
+        {
+            if (r == null || r is ParticleSystemRenderer) continue;
+            if (!有) { b = r.bounds; 有 = true; } else b.Encapsulate(r.bounds);
+        }
+        float 底 = 有 ? Mathf.Clamp(b.min.y - go.transform.position.y, -0.2f, 2f) : 0f;
+
+        var s = go.transform.lossyScale;
+        float kx = Mathf.Max(0.05f, (Mathf.Abs(s.x) + Mathf.Abs(s.z)) * 0.5f);
+        float ky = Mathf.Max(0.05f, Mathf.Abs(s.y));
+
+        cap.direction = 1;                                  // Y 轴
+        cap.radius = 世界半径 / kx;                          // ← 除以缩放，抵消 Unity 那次乘法
+        cap.height = Mathf.Max(世界半径 * 2.05f, 世界高) / ky;
+        cap.center = new Vector3(0f, (底 + (cap.height * ky) * 0.5f) / ky, 0f);
+    }
+
+    static void 补树干碰撞(GameObject go, float 目标高)
     {
         if (go.GetComponentInChildren<Collider>() != null) return;
-        float 缩 = Mathf.Max(0.4f, go.transform.lossyScale.x);
-        var cap = go.AddComponent<CapsuleCollider>();
-        cap.radius = 0.34f * 缩;
-        cap.height = 3.0f * 缩;
-        cap.center = new Vector3(0f, cap.height * 0.5f, 0f);
+        设树干碰撞(go, 目标高);
+    }
+
+    /// <summary>
+    /// **把当前场景里树的碰撞体改成人尺度**（幂等，可反复点）。
+    /// 为什么需要它：修好生成器只对"以后重跑"有效，而用户现在的场景是手改过的
+    /// （删了 73 棵树、加了传送点），**不能再重跑**，所以得单独有个"就地修"的入口。
+    /// 菜单：修仙 / 野外：把树的碰撞体改成人的尺度
+    /// </summary>
+    [MenuItem("修仙/野外：把树的碰撞体改成人的尺度")]
+    public static void 修场景树碰撞()
+    {
+        var 森林 = GameObject.Find("野外环境/森林");
+        if (森林 == null) { Debug.LogError("[野外] 场景里找不到「野外环境/森林」——先打开 Sect_Wilderness.scene"); return; }
+
+        int 修 = 0; float 前总 = 0, 后总 = 0;
+        foreach (Transform t in 森林.transform)
+        {
+            var go = t.gameObject;
+            var 旧 = go.GetComponent<CapsuleCollider>();
+            float 旧世界半径 = 0f;
+            if (旧 != null)
+            {
+                var s0 = go.transform.lossyScale;
+                旧世界半径 = 旧.radius * ((Mathf.Abs(s0.x) + Mathf.Abs(s0.z)) * 0.5f);
+            }
+            bool 有 = false; var b = new Bounds();
+            foreach (var r in go.GetComponentsInChildren<Renderer>(true))
+            {
+                if (r == null || r is ParticleSystemRenderer) continue;
+                if (!有) { b = r.bounds; 有 = true; } else b.Encapsulate(r.bounds);
+            }
+            float 树高 = 有 ? Mathf.Max(1f, b.size.y) : 6f;
+            设树干碰撞(go, 树高);
+            var 新 = go.GetComponent<CapsuleCollider>();
+            var s = go.transform.lossyScale;
+            后总 += 新.radius * ((Mathf.Abs(s.x) + Mathf.Abs(s.z)) * 0.5f);
+            前总 += 旧世界半径;
+            修++;
+        }
+        var sc = EditorSceneManager.GetActiveScene();
+        EditorSceneManager.MarkSceneDirty(sc);
+        EditorSceneManager.SaveScene(sc);
+        Debug.Log(string.Format("[野外] 已修 " + 修 + " 棵树的树干碰撞体：世界半径平均 {0:F3}m → {1:F3}m（角色半径 0.30m）",
+            前总 / Mathf.Max(1, 修), 后总 / Mathf.Max(1, 修)));
     }
 
     static void 补碰撞体(GameObject go)
