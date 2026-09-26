@@ -66,7 +66,13 @@ public class 外观预览 : MonoBehaviour, IDragHandler, IPointerDownHandler
 
     void OnDestroy()
     {
-        if (贴图 != null) { 贴图.Release(); Destroy(贴图); }
+        // ★ 顺序很重要：先把相机的 targetTexture 摘掉，再 Release/Destroy 那张 RT。
+        //   否则 Unity 报 “Releasing render texture that is set as Camera.targetTexture!”
+        //   （上一轮 Play Mode 实测报出来的）
+        if (相机 != null) 相机.targetTexture = null;
+        if (贴图 != null) { 贴图.Release(); Destroy(贴图); 贴图 = null; }
+        // 预览台是独立根物体（不在本组件底下），得自己销毁：否则相机和两盏灯会留在场景里
+        if (预览根 != null) { Destroy(预览根); 预览根 = null; }
     }
 
     /// <summary>搭一套"隔离"的预览环境</summary>
