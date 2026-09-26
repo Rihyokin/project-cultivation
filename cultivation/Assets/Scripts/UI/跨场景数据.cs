@@ -68,6 +68,7 @@ public class 跨场景数据 : MonoBehaviour
         public static List<UnityEngine.Object> 主动技能;
         public static GongFaDefinition 当前功法;
         public static MountDefinition 当前坐骑;
+        public static string 任务进度;
 
         public static void 拍下(UIPanelData 面板)
         {
@@ -80,6 +81,9 @@ public class 跨场景数据 : MonoBehaviour
             主动技能 = new List<UnityEngine.Object>(面板.主动技能);
             当前功法 = 面板.当前功法;
             当前坐骑 = 面板.当前坐骑;
+            // 主线进度也一起带走（任务管理器可能在新场景里才 Awake，所以先存成字符串）
+            var 任务 = Object.FindObjectOfType<任务管理器>();
+            任务进度 = 任务 != null ? 任务.导出进度() : 任务进度;
             有数据 = true;
         }
 
@@ -95,6 +99,14 @@ public class 跨场景数据 : MonoBehaviour
             面板.当前功法 = 当前功法;
             面板.当前坐骑 = 当前坐骑;
             面板.RaiseChanged();
+
+            // 主线进度：把字符串交给新场景里的任务管理器
+            if (!string.IsNullOrEmpty(任务进度))
+            {
+                var 任务 = Object.FindObjectOfType<任务管理器>();
+                if (任务 != null) 任务.导入进度(任务进度);
+                else Debug.LogWarning("[跨场景] 新场景里没有任务管理器，主线进度暂时没地方放（本场景放一个即可）");
+            }
         }
 
         public static void 清空()

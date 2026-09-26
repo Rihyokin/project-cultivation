@@ -61,6 +61,45 @@ public class 任务管理器 : MonoBehaviour
 
     // ================================================================ 查询
 
+    /// <summary>
+    /// 把进度导出成一行字符串，给跨场景接力用（`任务id:阶段;任务id:阶段;…`，阶段 0 = 已完成）。
+    /// 场景切换会销毁旧场景的一切，靠这个 + <see cref="导入进度"/> 让主线进度不归零。
+    /// </summary>
+    public string 导出进度()
+    {
+        var 串 = new System.Text.StringBuilder();
+        foreach (var kv in 当前阶段)
+        {
+            if (串.Length > 0) 串.Append(';');
+            串.Append(kv.Key).Append(':').Append(kv.Value);
+        }
+        foreach (var id in 已完成任务)
+        {
+            if (串.Length > 0) 串.Append(';');
+            串.Append(id).Append(":0");
+        }
+        return 串.ToString();
+    }
+
+    /// <summary>从 <see cref="导出进度"/> 的字符串恢复进度</summary>
+    public void 导入进度(string 串)
+    {
+        if (string.IsNullOrEmpty(串)) return;
+        当前阶段.Clear();
+        已完成任务.Clear();
+        foreach (var 段 in 串.Split(';'))
+        {
+            if (string.IsNullOrWhiteSpace(段)) continue;
+            var p = 段.Split(':');
+            if (p.Length != 2) continue;
+            int 阶段号;
+            if (!int.TryParse(p[1], out 阶段号)) continue;
+            if (阶段号 <= 0) 已完成任务.Add(p[0]);
+            else 当前阶段[p[0]] = 阶段号;
+        }
+        Debug.Log("[任务] 已接手上一场景的进度：" + 当前阶段.Count + " 个任务推进中、" + 已完成任务.Count + " 个已完成");
+    }
+
     public bool 进行中(string 任务id) => !string.IsNullOrEmpty(任务id) && 当前阶段.ContainsKey(任务id);
     public bool 已完成(string 任务id) => !string.IsNullOrEmpty(任务id) && 已完成任务.Contains(任务id);
     public int 取当前阶段号(string 任务id)
