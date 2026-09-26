@@ -3641,7 +3641,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 75b7236ad13405540a65c11cf1d9b048, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  "\u5B9A\u4E49": {fileID: 0}
+  "\u5B9A\u4E49": {fileID: 11400000, guid: 35a831a6b7471dd45a1379517914bdf5, type: 2}
   "\u6BCF\u6B21\u53D7\u51FB\u964D\u597D\u611F": 20
   "\u597D\u611F\u5EA6\u8303\u56F4": {x: -100, y: 100}
   "\u65E0\u654C": 0
