@@ -107,7 +107,7 @@ public static class CharacterPanelBuilder
         sidebar.rectTransform.offsetMin = new Vector2(16f, 62f);
         sidebar.rectTransform.offsetMax = new Vector2(186f, -16f);
 
-        string[] tabNames = { "背包", "境界", "神通", "法宝", "灵阵", "战阵", "坐骑" };
+        string[] tabNames = { "背包", "境界", "神通", "法宝", "灵阵", "战阵", "坐骑", "外观" };
         var tabButtons = new List<Button>();
         var tabBgs = new List<Image>();
         for (int i = 0; i < tabNames.Length; i++)
@@ -141,6 +141,7 @@ public static class CharacterPanelBuilder
         pages.Add(BuildArrayPage(content, font, data, out var arrActive, out var arrList, out var arrInfo));
         pages.Add(BuildSpiritFormationPage(content, font, data, out var spiritBar, out var spiritList, out var spiritInfo));
         pages.Add(BuildMountPage(content, font, data, out var mountPage, out var mountList, out var mountInfo));
+        pages.Add(BuildAppearancePage(content, font, data));      // ★ 必须和 tabNames 的最后一项「外观」对应
 
         // ================= 接线 =================
         panelUi.tabs.Clear();
