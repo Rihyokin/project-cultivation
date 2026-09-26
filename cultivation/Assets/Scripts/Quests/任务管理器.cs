@@ -331,6 +331,9 @@ public class 任务管理器 : MonoBehaviour
                 Debug.Log("[任务] 调度：镜头回玩家");
                 StartCoroutine(镜头回玩家(阶段.镜头时长, 阶段.镜头高度));
                 break;
+            case 任务动作.生成NPC:
+                生成NPC(阶段);
+                break;
             case 任务动作.销毁:
                 Debug.Log("[任务] 调度：销毁 " + npc.name);
                 Destroy(npc.gameObject);
@@ -465,6 +468,30 @@ public class 任务管理器 : MonoBehaviour
             yield return null;
         }
         if (cam != null) { cam.transform.position = 终; cam.transform.rotation = 终转; }
+    }
+
+    /// <summary>
+    /// 生成一个 NPC（三幕的野猪、大师兄都靠它）。
+    /// **动作参数 = 预制体资源路径**（`Assets/resources/` 下、不带扩展名），位置取 `坐标`。
+    /// 走 <see cref="NpcPrefabs.加载"/> —— 它内部处理了"同目录有同名 FBX 时 Resources.Load 会挑错"的坑。
+    /// </summary>
+    GameObject 生成NPC(QuestDefinition 阶段)
+    {
+        if (string.IsNullOrEmpty(阶段.动作参数))
+        {
+            Debug.LogWarning("[任务] 生成NPC 没填预制体路径（填在「动作参数」里，例：NPC/Demon/YeZhu/YeZhu）", 阶段);
+            return null;
+        }
+        var 预制 = NpcPrefabs.加载(阶段.动作参数);
+        if (预制 == null)
+        {
+            Debug.LogWarning("[任务] 生成NPC 载不到预制体：" + 阶段.动作参数, 阶段);
+            return null;
+        }
+        var go = Instantiate(预制, 阶段.坐标, Quaternion.identity);
+        go.name = 预制.name + "_任务生成";
+        Debug.Log("[任务] 生成 " + go.name + " 于 " + 阶段.坐标, 阶段);
+        return go;
     }
 
     static GameObject 找NPC(string npcId)
