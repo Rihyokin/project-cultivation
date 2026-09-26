@@ -55,6 +55,7 @@ public static class DataTableImporter
         new TableSpec("坐骑表",     typeof(MountDefinition),         "增益",     "增益"),
         // 对话：每行一段对话（同一 npcId 的若干「分段」= 该 NPC 的默认对话；回答可跳转分段；带条件列给任务管理器用）
         new TableSpec("对话表",     typeof(DialogueDefinition),      null,       null),
+        new TableSpec("任务表",     typeof(QuestDefinition),         null,       null),
         // 「兽宠表」已删 —— 用户决定不要兽宠系统了（战阵真灵取代了它）
     };
 
@@ -156,6 +157,10 @@ public static class DataTableImporter
         // 对话资产在 Generated 下、运行时读不到 → 顺手摊平成 Resources/对话/对话库.asset
         try { DialogueDatabaseBuilder.收集(false); }
         catch (System.Exception e) { report.Append("对话库收集失败: ").Append(e.Message).Append("\n"); }
+
+        // 任务阶段同理 → Resources/任务/任务库.asset
+        try { QuestDatabaseBuilder.收集(false); }
+        catch (System.Exception e) { report.Append("任务库收集失败: ").Append(e.Message).Append("\n"); }
 
         // ---- 第二遍：解析跨表引用（背包物品 / 掉落物）----
         foreach (var spec in Specs)

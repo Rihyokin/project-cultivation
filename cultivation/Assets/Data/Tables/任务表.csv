@@ -1,0 +1,9 @@
+id,任务id,任务名,类型,阶段,阶段名,说明,条件,物品id,数量,目标npcId,坐标X,坐标Y,坐标Z,到达半径,对话id,接取加标记,完成加标记,奖励物品,动作,动作目标npcId,动作参数,自动接取,前置任务id
+q_main_001_1,q_main_001,初入山门,主线,1,交一株回春丹,村里的老丈想亲眼看看你的回春丹。,提交物品,item_huichundan,1,,,,,,,q_初入山门_进行中,q_初入山门_交货完成,,,,,1,
+q_main_001_2,q_main_001,初入山门,主线,2,除一害,山里有东西不干净，先除掉一个。,击杀,,1,,,,,,,q_初入山门_除害开始,q_初入山门_除害完成,,播动画,npc_cunmin_chengnan,swagger,0,
+q_main_001_3,q_main_001,初入山门,主线,3,去村口看看,到村口（原点附近）走一趟。,到达,,,,0,0,0,6,,q_初入山门_巡村开始,q_初入山门_巡村完成,,,,,0,
+q_main_001_4,q_main_001,初入山门,主线,4,回村回话,回去找成男村民说句话。,对话,,,,,,,,dlg_chengnan_01,q_初入山门_回话开始,q_初入山门_完成,item_huichundan:2,,,,0,
+q_demo_1,q_demo,调度演示,支线,1,让村民摆姿势,测试：阶段开始让成男村民播 swagger。,提交物品,item_huichundan,1,,,,,,,q_demo_进行中,,,播动画,npc_cunmin_chengnan,swagger,0,
+q_demo_2,q_demo,调度演示,支线,2,让村民翻脸,测试：阶段开始让成男村民把玩家当敌人。,提交物品,item_huichundan,1,,,,,,,,,,攻击玩家,npc_cunmin_chengnan,,0,
+q_demo_3,q_demo,调度演示,支线,3,让村民消失,测试：阶段开始销毁成男村民。,提交物品,item_huichundan,1,,,,,,,,,,销毁,npc_cunmin_chengnan,,0,
+q_bounty_001_1,q_bounty_001,除妖悬赏,悬赏,1,交两株回春丹,悬赏：交两株回春丹。,提交物品,item_huichundan,2,,,,,,,q_bounty_进行中,,item_huichundan:1,,,,0,
