@@ -227,7 +227,13 @@ public class UIPanelData : MonoBehaviour
     public bool IsPassiveEnabled(PassiveDivineAbility ability)
     {
         EnsureLists();
-        return ability != null && !已停用被动.Contains(ability);
+        // ★ 用户 2026-09-26 报的 bug：**没获得 = 不生效**。
+        //   原来只判「已停用」列表 —— 而"停用列表为空 = 认为全开"是旧口径（主角天赋全会），
+        //   结果主角什么都没获得，御风却照飞（YufengFlight 第 158 行就是调这个方法判的）。
+        //   所有权是硬门槛，必须挡在最前面。
+        if (ability == null) return false;
+        if (!已获得被动(ability)) return false;
+        return !已停用被动.Contains(ability);
     }
 
     /// <summary>启用/停用某个被动神通，返回切换后的状态</summary>
