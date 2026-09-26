@@ -858,4 +858,62 @@ public static class CharacterPanelBuilder
 
         return page.gameObject;
     }
+
+    /// <summary>
+    /// **外观页**（用户 2026-09-27）—— 布局照示意图：
+    ///   左：`当前持有外观列表`（每行「外观名字 + 装备按钮」，带滚动条）
+    ///   右：`模型3D展示`（<see cref="外观预览"/> 渲染，**左键拖动只能左右转**）
+    ///
+    /// 结构照 <c>BuildMountPage</c>（坐骑页已有 3D 展示，是最省事的模板）。
+    /// 页面逻辑在运行时组件 <see cref="外观页"/> 里（它自己建行、自己接装备按钮），
+    /// 这里只负责把壳和引用接好。
+    ///
+    /// ⚠️ 接线时要和 `tabNames` / `pages` / `CharacterPanelUI` 的枚举**三处一起加**，
+    ///    下标必须一一对应，否则标签点和页面会错位。
+    /// </summary>
+    static GameObject BuildAppearancePage(RectTransform parent, Font font, UIPanelData data)
+    {
+        var page = UIBuildUtils.CreateRect("Page_外观", parent);
+        UIBuildUtils.Stretch(page);
+
+        // ---- 右：模型 3D 展示（左键拖动只能左右转）----
+        var showPanel = CreatePanel("AppearanceShow", page, font, "模型3D展示", UIBuildUtils.ColorPanel);
+        PlacePanel(showPanel, new Vector2(0.52f, 0f), new Vector2(1f, 1f));
+
+        var previewRt = UIBuildUtils.CreateRect("Preview", showPanel);
+        UIBuildUtils.Stretch(previewRt);
+        previewRt.offsetMin = new Vector2(10f, 10f);
+        previewRt.offsetMax = new Vector2(-10f, -38f);      // 让出标题
+
+        var raw = previewRt.gameObject.AddComponent<RawImage>();
+        raw.color = Color.white;
+        raw.raycastTarget = true;                           // 拖动旋转要接射线
+
+        var tip = UIBuildUtils.CreateText("Tip", showPanel, font, "左键拖动可旋转（只能左右，不能上下）", 15,
+                                          TextAnchor.LowerRight, new Color(0.55f, 0.55f, 0.55f));
+        tip.rectTransform.anchorMin = new Vector2(0f, 0f);
+        tip.rectTransform.anchorMax = new Vector2(1f, 0f);
+        tip.rectTransform.pivot = new Vector2(0.5f, 0f);
+        tip.rectTransform.offsetMin = new Vector2(14f, 12f);
+        tip.rectTransform.offsetMax = new Vector2(-14f, 34f);
+
+        // ---- 左：当前持有外观列表（带滚动条）----
+        var listContent = CreateScrollList("AppearanceList", page, font, UIBuildUtils.ColorPanel,
+                                           "当前持有外观列表", out _, 带滚动条: true);
+        var listRect = (RectTransform)listContent.parent.parent;
+        PlacePanel(listRect, new Vector2(0f, 0f), new Vector2(0.5f, 1f));
+
+        // ---- 接运行时组件 ----
+        var 页 = page.gameObject.AddComponent<外观页>();
+        页.页面根 = page.gameObject;
+        页.列表容器 = listContent;
+        页.展示画布 = raw;
+        页.字体 = font;
+
+        var 预览 = previewRt.gameObject.AddComponent<外观预览>();
+        预览.画布 = raw;
+        页.预览 = 预览;
+
+        return page.gameObject;
+    }
 }
