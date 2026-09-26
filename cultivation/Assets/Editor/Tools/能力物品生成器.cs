@@ -121,7 +121,9 @@ public static class 能力物品生成器
         面板.当前功法 = null;
         面板.待装备神通 = null;
         for (int i = 0; i < 面板.主动技能.Count; i++) 面板.主动技能[i] = null;
+        // 用户 2026-09-26：**所有被动一开始都是停用的**（没获得的被动就是停用状态）
         面板.已停用被动 = new List<PassiveDivineAbility>();
+        foreach (var a in 面板.神通) if (a is PassiveDivineAbility p) 面板.已停用被动.Add(p);
         面板.RaiseChanged();
 
         EditorUtility.SetDirty(面板);
