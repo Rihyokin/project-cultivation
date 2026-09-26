@@ -50,6 +50,12 @@ public class DialogueDatabase : ScriptableObject
             bool a通用 = string.IsNullOrEmpty(a.npcId);
             bool b通用 = string.IsNullOrEmpty(b.npcId);
             if (a通用 != b通用) return a通用 ? 1 : -1;
+            // ★ 再比「具体程度」：**带条件的**（任务专属回答）压过无条件的。
+            //   实测踩过：任务回答和默认回答都写 优先=10，平手后按 id 排，"dlg_chengnan_01" 比
+            //   "dlg_chengnan_01b" 短就赢了 —— 结果任务回答永远出不来。
+            bool a有 = !string.IsNullOrWhiteSpace(a.需要标记);
+            bool b有 = !string.IsNullOrWhiteSpace(b.需要标记);
+            if (a有 != b有) return a有 ? -1 : 1;
             return string.CompareOrdinal(a.id, b.id);   // 保证顺序稳定
         });
         return 结果;
