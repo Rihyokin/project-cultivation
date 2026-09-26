@@ -383,6 +383,82 @@ public class 任务管理器 : MonoBehaviour
         if (a != null) a.CrossFade(状态, 0.2f);
     }
 
+    // ================================================================ 镜头接管（演出用）
+    //
+    // 场景里的主相机是 `Main Camera`，挂的是 **TopDownCamera**（俯视跟随）+ TopDownCameraZoom。
+    // 所以演出期间要**先把它们停掉**，否则每帧都会把镜头抢回玩家身上 ✗；演完再交还。
+
+    readonly System.Collections.Generic.List<Behaviour> 被停的相机脚本 = new System.Collections.Generic.List<Behaviour>();
+
+    void 接管相机()
+    {
+        if (被停的相机脚本.Count > 0) return;
+        var cam = Camera.main;
+        if (cam == null) return;
+        foreach (var b in cam.GetComponents<Behaviour>())
+        {
+            if (b == null || !b.enabled) continue;
+            string n = b.GetType().Name;
+            if (n.Contains("TopDownCamera") || n.Contains("CameraZoom")) { b.enabled = false; 被停的相机脚本.Add(b); }
+        }
+        if (被停的相机脚本.Count > 0) Debug.Log("[任务] 镜头接管：停了 " + 被停的相机脚本.Count + " 个跟随脚本");
+    }
+
+    void 交还相机()
+    {
+        foreach (var b in 被停的相机脚本) if (b != null) b.enabled = true;
+        if (被停的相机脚本.Count > 0) Debug.Log("[任务] 镜头交还：" + 被停的相机脚本.Count + " 个跟随脚本恢复");
+        被停的相机脚本.Clear();
+    }
+
+    /// <summary>把镜头平滑推到某个目标身上（停在它的斜后方，略俯视）</summary>
+    System.Collections.IEnumerator 镜头对焦(Transform 目标, float 时长, float 高度)
+    {
+        var cam = Camera.main;
+        if (cam == null || 目标 == null) { 交还相机(); yield break; }
+        接管相机();
+
+        Vector3 起 = cam.transform.position;
+        Quaternion 起转 = cam.transform.rotation;
+        Vector3 看向 = 目标.position + Vector3.up * 1.0f;
+        Vector3 终 = 目标.position + new Vector3(0f, Mathf.Max(1.0f, 高度) + 1.2f, -3.2f);
+        Quaternion 终转 = Quaternion.LookRotation(看向 - 终, Vector3.up);
+        yield return 推镜头(cam, 起, 终, 起转, 终转, 时长);
+    }
+
+    /// <summary>镜头回到玩家身上（然后交还给跟随脚本）</summary>
+    System.Collections.IEnumerator 镜头回玩家(float 时长, float 高度)
+    {
+        var cam = Camera.main;
+        var 玩家 = 物品使用器.取玩家物体();
+        if (cam == null || 玩家 == null) { 交还相机(); yield break; }
+        接管相机();
+
+        Vector3 起 = cam.transform.position;
+        Quaternion 起转 = cam.transform.rotation;
+        Vector3 看向 = 玩家.transform.position + Vector3.up * 1.0f;
+        Vector3 终 = 玩家.transform.position + new Vector3(0f, Mathf.Max(1.0f, 高度) + 1.2f, -3.2f);
+        Quaternion 终转 = Quaternion.LookRotation(看向 - 终, Vector3.up);
+        yield return 推镜头(cam, 起, 终, 起转, 终转, 时长);
+        交还相机();          // 回玩家之后把控制权还给 TopDownCamera
+    }
+
+    static System.Collections.IEnumerator 推镜头(Camera cam, Vector3 起, Vector3 终, Quaternion 起转, Quaternion 终转, float 时长)
+    {
+        float t = 0f;
+        float 总 = Mathf.Max(0.05f, 时长);
+        while (t < 总)
+        {
+            t += Time.unscaledDeltaTime;
+            float k = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(t / 总));
+            if (cam == null) yield break;
+            cam.transform.position = Vector3.Lerp(起, 终, k);
+            cam.transform.rotation = Quaternion.Slerp(起转, 终转, k);
+            yield return null;
+        }
+        if (cam != null) { cam.transform.position = 终; cam.transform.rotation = 终转; }
+    }
+
     static GameObject 找NPC(string npcId)
     {
         if (string.IsNullOrEmpty(npcId)) return null;
