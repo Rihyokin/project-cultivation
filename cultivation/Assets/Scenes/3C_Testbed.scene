@@ -35681,6 +35681,7 @@ GameObject:
   - component: {fileID: 1059389726}
   - component: {fileID: 1059389725}
   - component: {fileID: 1059389724}
+  - component: {fileID: 1059389729}
   m_Layer: 0
   m_HasEditorInfo: 1
   m_Name: HudCanvas
@@ -35807,7 +35808,7 @@ Canvas:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1059389723}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_RenderMode: 0
   m_Camera: {fileID: 0}
@@ -35853,6 +35854,19 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!114 &1059389729
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1059389723}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8ca8df038a92391448299c3ee2b9af3b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  "\u8FD0\u884C\u65F6\u6253\u5F00": 1
 --- !u!1001 &1064287657
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -48020,6 +48034,7 @@ GameObject:
   - component: {fileID: 1431189817}
   - component: {fileID: 1431189816}
   - component: {fileID: 1431189815}
+  - component: {fileID: 1431189822}
   m_Layer: 0
   m_HasEditorInfo: 1
   m_Name: CharacterUI
@@ -48455,7 +48470,7 @@ Canvas:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1431189814}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_RenderMode: 0
   m_Camera: {fileID: 0}
@@ -48491,6 +48506,19 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!114 &1431189822
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1431189814}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8ca8df038a92391448299c3ee2b9af3b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  "\u8FD0\u884C\u65F6\u6253\u5F00": 1
 --- !u!1 &1436336767
 GameObject:
   m_ObjectHideFlags: 0
@@ -61503,7 +61531,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   "\u5F00\u5173\u6309\u952E": 282
-  "\u542F\u52A8\u65F6\u663E\u793A": 1
+  "\u542F\u52A8\u65F6\u663E\u793A": 0
   "\u73A9\u5BB6\u6218\u6597\u5C5E\u6027": {fileID: 0}
   "\u9762\u677F\u5BBD\u5EA6": 380
   "\u9762\u677F\u9AD8\u5EA6": 640

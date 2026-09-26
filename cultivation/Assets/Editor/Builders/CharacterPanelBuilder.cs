@@ -56,6 +56,9 @@ public static class CharacterPanelBuilder
         var panelUi = canvasGo.AddComponent<CharacterPanelUI>();
         var data = canvasGo.AddComponent<UIPanelData>();
 
+        // ★ 编辑器里默认不显示这个画布（摆场景时角色面板铺在视图上很挡），运行时自动打开
+        canvasGo.AddComponent<UICanvasBoot>();
+
         // PanelRoot：随开关显隐
         var panelRoot = UIBuildUtils.CreateRect("PanelRoot", canvasGo.transform);
         UIBuildUtils.Stretch(panelRoot);

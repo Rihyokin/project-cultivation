@@ -85,6 +85,10 @@ public static class HudBuilder
         // 悬停需要射线：GraphicRaycaster + 场景里的 EventSystem（3C_Testbed 已有）
         canvasGo.AddComponent<GraphicRaycaster>();
 
+        // ★ 编辑器里默认不显示这个画布（不然摆场景时 HUD 铺在视图上挡视线），
+        //   运行时 UICanvasBoot.Awake() 会再打开 —— 见 UICanvasBoot 的注释
+        canvasGo.AddComponent<UICanvasBoot>();
+
         var root = canvasGo.GetComponent<RectTransform>();
         root.anchorMin = Vector2.zero;
         root.anchorMax = Vector2.one;

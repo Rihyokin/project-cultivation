@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 /// <summary>
 /// 临时调试面板（IMGUI 实现，不依赖任何 prefab / Canvas）。
@@ -14,8 +14,8 @@ public class PlayerStatsDebugPanel : MonoBehaviour
     [Tooltip("显示/隐藏调试面板的按键")]
     public KeyCode 开关按键 = KeyCode.F1;
 
-    [Tooltip("进入游戏时是否默认显示")]
-    public bool 启动时显示 = true;
+    [Tooltip("进入游戏时是否默认显示。★ 默认关（用户 2026-09-26：一进游戏就糊一大块面板，F1 自己开）")]
+    public bool 启动时显示 = false;
 
     [Header("引用")]
     [Tooltip("留空则自动在自身找 PlayerCombatStats")]
