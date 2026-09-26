@@ -309,7 +309,9 @@ public static class NpcVariantSplitter
     static readonly Dictionary<string, string> 名字修正 = new Dictionary<string, string>
     {
         { "LieQuan",   "猎犬" },     // demon_liequan_01/02/03 —— 犬形妖魔
-        { "XiaoYaoZi", "逍遥子" },   // npc_xiaoyaozi + human_xiaoyaozi_01/02 —— 同一个人物
+        // ★ 2026-09-26 用户要求删掉逍遥子（npc_xiaoyaozi + human_xiaoyaozi_01/02），
+        //   这里原来有一行 { "XiaoYaoZi", "逍遥子" } —— 家族没了，一并去掉。
+        //   （这张表只影响"按家族名补中文"，留着的坏处是以后新建同名模型会被莫名改名）
     };
 
     /// <summary>把名字里的英文家族名换成中文（不命中就原样返回）</summary>
